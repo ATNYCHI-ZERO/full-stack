@@ -1,5 +1,8 @@
 # full-stack
 
+This repository now includes speculative historical narratives exploring hidden lineages and esoteric traditions.
+
+- [The Crimson Thread: A Speculative Chronicle](docs/crimson-thread.md)
 ## Council Composition Overview
 
 This repository records the structure of a conceptual council organized around several "harmonic families"—archetypal domains of modern influence. Each family is represented by notable figures whose expertise and authority embody that field:
