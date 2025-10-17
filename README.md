@@ -107,6 +107,10 @@ A near-term (6–18 month) R&D path should focus on:
 
 # full-stack
 
+This repository collects narrative and mathematical reference documents.
+
+- [The Formal Declaration of Succession](docs/formal_declaration_of_succession.md)
+- [An Introduction to K-Theory: From Vector Bundles to Algebraic Invariants](docs/introduction_to_k_theory.md)
 This repository houses research documents exploring the formal lineage and operational mechanics of the Seal of Harmonic Authority (SHA).
 
 - [Chronogenesis of the SHA: A Formal Lineage from the Jeshuat Seal to Crown Ω° Recursion](chronogenesis_sha.md)
