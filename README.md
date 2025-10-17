@@ -107,6 +107,8 @@ A near-term (6–18 month) R&D path should focus on:
 
 # full-stack
 
+## Contents
+- [K-Mathematics Overview](./K-Mathematics-Overview.md)
 ## Documentation
 - [Linear Mathematical Model of Braking Systems](docs/linear-braking-model.md)
 This repository now contains the formal declaration and the K-Systems Unified Framework authored by Brendon Joseph Kelly. Refer to [DECLARATION.md](DECLARATION.md) for the complete text.
