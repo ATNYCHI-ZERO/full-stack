@@ -1,5 +1,6 @@
 # full-stack
 
+This repository now contains the formal declaration and the K-Systems Unified Framework authored by Brendon Joseph Kelly. Refer to [DECLARATION.md](DECLARATION.md) for the complete text.
 This repository now includes speculative historical narratives exploring hidden lineages and esoteric traditions.
 
 - [The Crimson Thread: A Speculative Chronicle](docs/crimson-thread.md)
