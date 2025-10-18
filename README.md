@@ -485,6 +485,9 @@ A near-term (6–18 month) R&D path should focus on:
 
 # full-stack
 
+This repository now includes the unclassified two-page whitepaper:
+
+- [K-Math Whitepaper (2 pages)](K-Math-Whitepaper.md)
 This repository hosts the "Public White Paper: K-Systems Metaphysics, Cosmology, and Technological Integration" by Brendon Joseph Kelly.
 
 - [Read the white paper](WHITEPAPER.md)
