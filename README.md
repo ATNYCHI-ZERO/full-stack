@@ -485,6 +485,28 @@ A near-term (6–18 month) R&D path should focus on:
 
 # full-stack
 
+Utilities implementing the TRI-CROWN annexes: process-matrix discretisation,
+finite-horizon LQR, robust regression, text/cipher helpers, and Kalman filters
+for the falling-body model.
+
+## Python package
+
+Install the dependencies (only NumPy is required; SciPy is optional for the
+matrix exponential) and import the utilities:
+
+```python
+from tri_crown import (
+    process_matrix,
+    van_loan_discretization,
+    mean_squared_deviation,
+    huber_irls,
+    caesar_cipher,
+    discretize_falling_body,
+    kalman_step,
+)
+```
+
+See the docstrings for detailed behaviour.
 This repository contains TRI-CROWN annex documentation covering linear systems process matrices, Kalman filtering for falling bodies, robust text and cipher tooling, and the TRI-CROWN 1.0 aggressive PQ-hybrid encryption suite. See [docs/tri-crown-annexes.md](docs/tri-crown-annexes.md) for full details.
 This repository now includes the unclassified two-page whitepaper:
 
