@@ -230,6 +230,9 @@ A near-term (6–18 month) R&D path should focus on:
 
 # full-stack
 
+This repository now houses a lore document detailing the Ten Scrolls of the Inner Flame.
+
+- [Ten Scrolls of the Inner Flame](docs/templar_inner_flame_scrolls.md)
 This repository includes documentation exploring object-centered π collapse theory and critiques of atmospheric and light dynamics. See [`docs/object-centered-pi.md`](docs/object-centered-pi.md) for details.
 
 ## Interpreting the Ω∞ Expression
