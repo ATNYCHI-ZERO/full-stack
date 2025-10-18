@@ -578,6 +578,7 @@ A near-term (6–18 month) R&D path should focus on:
 
 # full-stack
 
+This repository now includes the TRI-CROWN Hybrid PQ Encryption Suite white paper under `docs/tri-crown-hybrid-pq-encryption-suite.md`.
 Utilities implementing the TRI-CROWN annexes: process-matrix discretisation,
 finite-horizon LQR, robust regression, text/cipher helpers, and Kalman filters
 for the falling-body model.
