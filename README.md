@@ -230,6 +230,9 @@ A near-term (6–18 month) R&D path should focus on:
 
 # full-stack
 
+This repository collects concise technical notes. Available topics include:
+
+- [Angular velocity vector](docs/physics/angular_velocity.md)
 This repository now houses a lore document detailing the Ten Scrolls of the Inner Flame.
 
 - [Ten Scrolls of the Inner Flame](docs/templar_inner_flame_scrolls.md)
