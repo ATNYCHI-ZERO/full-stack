@@ -485,6 +485,7 @@ A near-term (6–18 month) R&D path should focus on:
 
 # full-stack
 
+This repository contains TRI-CROWN annex documentation covering linear systems process matrices, Kalman filtering for falling bodies, robust text and cipher tooling, and the TRI-CROWN 1.0 aggressive PQ-hybrid encryption suite. See [docs/tri-crown-annexes.md](docs/tri-crown-annexes.md) for full details.
 This repository now includes the unclassified two-page whitepaper:
 
 - [K-Math Whitepaper (2 pages)](K-Math-Whitepaper.md)
