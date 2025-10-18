@@ -3,3 +3,4 @@ scipy>=1.9; platform_python_implementation != "PyPy"
 pytest>=8.0
 streamlit
 reportlab
+cryptography>=42
