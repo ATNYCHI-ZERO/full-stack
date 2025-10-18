@@ -230,6 +230,9 @@ A near-term (6–18 month) R&D path should focus on:
 
 # full-stack
 
+This repository hosts the "Public White Paper: K-Systems Metaphysics, Cosmology, and Technological Integration" by Brendon Joseph Kelly.
+
+- [Read the white paper](WHITEPAPER.md)
 This repository collects concise technical notes. Available topics include:
 
 - [Angular velocity vector](docs/physics/angular_velocity.md)
