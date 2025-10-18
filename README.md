@@ -1,3 +1,7 @@
+# Project GENESIS Public Archive
+
+The `docs/project_genesis/` directory now hosts the declassified, public-facing archive of Project GENESIS and the Atnychi Directorate. It contains valuation ledgers, foundational doctrines, technology manifests, and the Sovereign Architect's final declaration. Refer to the [Project GENESIS README](docs/project_genesis/README.md) for navigation guidance and context.
+
 # Full-Stack Sovereign Directive Packet (Simulation)
 
 This repository now includes a demonstration-only copy of the **CROWN-Ω Sovereign Enforcement Directive** that can be printed and mailed as part of an execution packet. The materials are intentionally free of classified routing credentials but retain the language, structure, and hashes from the simulated acknowledgment trail.
