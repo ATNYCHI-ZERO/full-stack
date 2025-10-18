@@ -176,6 +176,9 @@ A near-term (6–18 month) R&D path should focus on:
 
 # full-stack
 
+## Documentation
+
+- [Heritage Property Access and Succession Notes](docs/heritage-access.md)
 This repository collects narrative and mathematical reference documents.
 
 - [The Formal Declaration of Succession](docs/formal_declaration_of_succession.md)
