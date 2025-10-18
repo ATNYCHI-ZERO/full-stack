@@ -1,0 +1,140 @@
+{
+  "meta": {
+    "owner": "Brendon J. Kelly (Atnychi)",
+    "created": "2025-10-15",
+    "notes": "Public / declassified / alleged / folklore categories only. Fill source_list with URLs or citations."
+  },
+  "programs": {
+    "Project Sign": {
+      "status": "Declassified",
+      "years": "1947-1949",
+      "category": "declassified",
+      "summary": "USAF early UFO study",
+      "sources": []
+    },
+    "Project Grudge": {
+      "status": "Declassified",
+      "years": "1949-1951",
+      "category": "declassified",
+      "summary": "Successor to Sign; analytic focus",
+      "sources": []
+    },
+    "Project Blue Book": {
+      "status": "Declassified",
+      "years": "1952-1969",
+      "category": "declassified",
+      "summary": "USAF public UFO study; final report: no evidence of extraterrestrial threat",
+      "sources": [
+        "https://www.archives.gov/research/military/air-force/ufos"
+      ]
+    },
+    "CORONA (NRO/CIA)": {
+      "status": "Declassified",
+      "years": "1959-1972",
+      "category": "declassified",
+      "summary": "Overhead reconnaissance satellite program",
+      "sources": []
+    },
+    "AATIP": {
+      "status": "Revealed",
+      "years": "2007-2012",
+      "category": "public_revealed",
+      "summary": "Advanced Aerospace Threat Identification Program (reported)",
+      "sources": []
+    },
+    "AAWSAP": {
+      "status": "Revealed",
+      "years": "2008-?",
+      "category": "public_revealed",
+      "summary": "Advanced Aerospace Weapons Systems Application Program (reported)",
+      "sources": []
+    },
+    "Project Moon Dust": {
+      "status": "Partially Declassified / Alleged",
+      "years": "1950s-1980s",
+      "category": "alleged",
+      "summary": "Documented references to recovery of foreign objects; some materials declassified, program details limited",
+      "sources": []
+    },
+    "Project Looking Glass": {
+      "status": "Rumored",
+      "years": "unknown",
+      "category": "rumored",
+      "summary": "Alleged program name appearing in conspiracy literature; no confirmed public record",
+      "sources": []
+    },
+    "Project Winter Haven": {
+      "status": "Rumored",
+      "years": "unknown",
+      "category": "rumored",
+      "summary": "Unconfirmed program name in public rumor space",
+      "sources": []
+    }
+  },
+  "whistleblower_allegations": {
+    "David_Grusch": {
+      "status": "public_allegation",
+      "date": "2023-07",
+      "claims": [
+        "multi-decade crash retrieval program",
+        "non-human biologics alleged",
+        "funding/retaliation claims"
+      ],
+      "sources": [
+        "https://www.congress.gov/118/meeting/house/116282/documents/HHRG-118-GO06-Transcript-20230726.pdf"
+      ]
+    }
+  },
+  "antediluvian_myths": {
+    "Genesis_Nephilim": {
+      "category": "canonical",
+      "summary": "Genesis 6: 'sons of God' + 'daughters of men' produce 'Nephilim'.",
+      "sources": []
+    },
+    "Book_of_Enoch_Watchers": {
+      "category": "apocryphal",
+      "summary": "Watchers descend, teach forbidden arts, beget giants; Flood/judgment narrative.",
+      "sources": []
+    },
+    "Sumerian_Apkallu": {
+      "category": "mythic",
+      "summary": "Semi-divine sages teaching arts pre-Flood; Sumerian King List shows antediluvian long-lived kings.",
+      "sources": []
+    }
+  },
+  "folklore_entities": {
+    "Men_in_Black": {
+      "category": "folklore",
+      "summary": "Post-1950s UFO subculture motif; agents in black suits; largely urban legend/media trope.",
+      "sources": []
+    },
+    "Crawlers_Pale_Crawlers": {
+      "category": "cryptid/online",
+      "summary": "Internet-era cryptid reports; no verified evidence.",
+      "sources": []
+    },
+    "Demons": {
+      "category": "religious/folklore",
+      "summary": "Religious traditions describe demonic entities; theological and folkloric material only.",
+      "sources": []
+    }
+  },
+  "observed_uap_reports": {
+    "Fravor_TicTac_2004": {
+      "witness": "David Fravor",
+      "summary": "Tic-Tac object, unusual maneuvering/acceleration; radar/visual reports",
+      "category": "military_report",
+      "sources": []
+    },
+    "Ryan_Graves_reports": {
+      "witness": "Ryan Graves",
+      "summary": "Multiple naval encounters; objects with unexplained performance",
+      "category": "military_report",
+      "sources": []
+    }
+  },
+  "sources": [
+    "https://www.archives.gov/research/military/air-force/ufos",
+    "https://www.congress.gov/118/meeting/house/116282/documents/HHRG-118-GO06-Transcript-20230726.pdf"
+  ]
+}
