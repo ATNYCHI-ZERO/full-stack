@@ -22,7 +22,10 @@ import zlib
 from typing import Iterable, Union
 
 import numpy as np
-import sympy as sp
+try:  # pragma: no cover - optional dependency for symbolic helpers
+    import sympy as sp
+except ModuleNotFoundError:  # pragma: no cover - exercised when SymPy missing
+    sp = None  # type: ignore[assignment]
 
 ArrayLike = Union[Iterable[float], np.ndarray]
 
@@ -73,6 +76,8 @@ def omega(vec: ArrayLike) -> np.ndarray:
 def _omega_symbolic(vec: sp.Matrix) -> sp.Matrix:
     """SymPy variant of the Walsh\u2013Hadamard transform."""
 
+    if sp is None:  # pragma: no cover - executed only when SymPy is unavailable
+        raise RuntimeError("SymPy is required for symbolic \u03a9 operations")
     n = vec.shape[0]
     if n == 0 or n & (n - 1):
         raise ValueError("\u03a9 requires vector length to be a power of two")
@@ -170,6 +175,8 @@ def crown_complexity(signal: ArrayLike) -> float:
 def crown_ns_symbolic() -> sp.Eq:
     """Return a symbolic Navier\u2013Stokes form using \u03a9-domain convection."""
 
+    if sp is None:  # pragma: no cover - executed only when SymPy is unavailable
+        raise RuntimeError("SymPy is required for symbolic Navier\u2013Stokes output")
     t, x, y = sp.symbols("t x y")
     u = sp.Function("u")(x, y, t)
     p = sp.Function("p")(x, y, t)
