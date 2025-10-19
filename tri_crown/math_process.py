@@ -39,7 +39,8 @@ def _series_expm(A: np.ndarray, dt: float, order: int = 6) -> np.ndarray:
     M = A * dt
     # Scaling and squaring for stability.
     norm = np.linalg.norm(M, ord=np.inf)
-    s = max(0, int(math.log2(norm)) - 1)
+    norm_safe = max(norm, 1e-12)
+    s = max(0, int(math.log2(norm_safe)) - 1)
     M_scaled = M / (2**s if s > 0 else 1)
 
     term = np.eye(A.shape[0])
