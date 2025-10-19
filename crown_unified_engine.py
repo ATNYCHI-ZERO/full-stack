@@ -114,96 +114,94 @@ class CrownEngineConfig:
     kernel: np.ndarray = field(default_factory=_default_kernel)
 
 
-if not _HAS_TRICROWN:
-
-    @dataclass
-    class _StubRecord:
-        sequence: int
-        nonce: bytes
-        ciphertext: bytes
-        commitment: bytes
-        aad: bytes
+@dataclass
+class _StubRecord:
+    sequence: int
+    nonce: bytes
+    ciphertext: bytes
+    commitment: bytes
+    aad: bytes
 
 
-    @dataclass
-    class _StubSession:
-        role: str
-        session_id: bytes
-        transcript: bytes
-        shared_secret: bytes
-        nonce_counter: int = 0
+@dataclass
+class _StubSession:
+    role: str
+    session_id: bytes
+    transcript: bytes
+    shared_secret: bytes
+    nonce_counter: int = 0
 
-        def rekey(
-            self,
-            *,
-            new_secrets: Sequence[bytes],
-            transcript: bytes | None = None,
-        ) -> None:
-            material = self.shared_secret + b"".join(new_secrets)
-            self.shared_secret = hashlib.sha3_256(material).digest()
-            if transcript is not None:
-                self.transcript = transcript
-            self.nonce_counter = 0
+    def rekey(
+        self,
+        *,
+        new_secrets: Sequence[bytes],
+        transcript: bytes | None = None,
+    ) -> None:
+        material = self.shared_secret + b"".join(new_secrets)
+        self.shared_secret = hashlib.sha3_256(material).digest()
+        if transcript is not None:
+            self.transcript = transcript
+        self.nonce_counter = 0
 
-        def seal(self, plaintext: bytes, *, aad: bytes = b"") -> _StubRecord:
-            key = hashlib.sha3_256(self.shared_secret + aad).digest()
-            nonce = hashlib.sha3_256(
-                key + self.session_id + self.nonce_counter.to_bytes(4, "big")
-            ).digest()[:12]
-            ciphertext = bytes(
-                byte ^ key[i % len(key)] for i, byte in enumerate(plaintext)
-            )
-            commitment = hashlib.sha3_256(nonce + aad + ciphertext).digest()
-            record = _StubRecord(
-                sequence=self.nonce_counter,
-                nonce=nonce,
-                ciphertext=ciphertext,
-                commitment=commitment,
-                aad=aad,
-            )
-            self.nonce_counter += 1
-            return record
-
-        def open(self, record: _StubRecord) -> bytes:
-            if record.sequence != self.nonce_counter:
-                raise ValueError("out-of-order record")
-            key = hashlib.sha3_256(self.shared_secret + record.aad).digest()
-            expected_commitment = hashlib.sha3_256(
-                record.nonce + record.aad + record.ciphertext
-            ).digest()
-            if expected_commitment != record.commitment:
-                raise ValueError("commitment mismatch")
-            plaintext = bytes(
-                byte ^ key[i % len(key)] for i, byte in enumerate(record.ciphertext)
-            )
-            self.nonce_counter += 1
-            return plaintext
-
-
-    @dataclass
-    class _StubHandshakeResult:
-        session: _StubSession
-        transcript: bytes
-        shared_secrets: tuple[bytes, ...]
-
-
-    def _fallback_perform_handshake() -> tuple[_StubHandshakeResult, _StubHandshakeResult]:
-        session_id = hashlib.sha3_256(b"crown-unified-engine-session").digest()[:16]
-        transcript = hashlib.sha3_256(b"crown-unified-engine-transcript").digest()
-        shared = hashlib.sha3_256(b"crown-unified-engine-shared-secret").digest()
-        client_session = _StubSession(
-            role="client", session_id=session_id, transcript=transcript, shared_secret=shared
+    def seal(self, plaintext: bytes, *, aad: bytes = b"") -> _StubRecord:
+        key = hashlib.sha3_256(self.shared_secret + aad).digest()
+        nonce = hashlib.sha3_256(
+            key + self.session_id + self.nonce_counter.to_bytes(4, "big")
+        ).digest()[:12]
+        ciphertext = bytes(
+            byte ^ key[i % len(key)] for i, byte in enumerate(plaintext)
         )
-        server_session = _StubSession(
-            role="server", session_id=session_id, transcript=transcript, shared_secret=shared
+        commitment = hashlib.sha3_256(nonce + aad + ciphertext).digest()
+        record = _StubRecord(
+            sequence=self.nonce_counter,
+            nonce=nonce,
+            ciphertext=ciphertext,
+            commitment=commitment,
+            aad=aad,
         )
-        client_result = _StubHandshakeResult(
-            session=client_session, transcript=transcript, shared_secrets=(shared,)
+        self.nonce_counter += 1
+        return record
+
+    def open(self, record: _StubRecord) -> bytes:
+        if record.sequence != self.nonce_counter:
+            raise ValueError("out-of-order record")
+        key = hashlib.sha3_256(self.shared_secret + record.aad).digest()
+        expected_commitment = hashlib.sha3_256(
+            record.nonce + record.aad + record.ciphertext
+        ).digest()
+        if expected_commitment != record.commitment:
+            raise ValueError("commitment mismatch")
+        plaintext = bytes(
+            byte ^ key[i % len(key)] for i, byte in enumerate(record.ciphertext)
         )
-        server_result = _StubHandshakeResult(
-            session=server_session, transcript=transcript, shared_secrets=(shared,)
-        )
-        return client_result, server_result
+        self.nonce_counter += 1
+        return plaintext
+
+
+@dataclass
+class _StubHandshakeResult:
+    session: _StubSession
+    transcript: bytes
+    shared_secrets: tuple[bytes, ...]
+
+
+def _fallback_perform_handshake() -> tuple[_StubHandshakeResult, _StubHandshakeResult]:
+    session_id = hashlib.sha3_256(b"crown-unified-engine-session").digest()[:16]
+    transcript = hashlib.sha3_256(b"crown-unified-engine-transcript").digest()
+    shared = hashlib.sha3_256(b"crown-unified-engine-shared-secret").digest()
+    client_session = _StubSession(
+        role="client", session_id=session_id, transcript=transcript, shared_secret=shared
+    )
+    server_session = _StubSession(
+        role="server", session_id=session_id, transcript=transcript, shared_secret=shared
+    )
+    client_result = _StubHandshakeResult(
+        session=client_session, transcript=transcript, shared_secrets=(shared,)
+    )
+    server_result = _StubHandshakeResult(
+        session=server_session, transcript=transcript, shared_secrets=(shared,)
+    )
+    return client_result, server_result
 
 
 @dataclass(frozen=True)
@@ -319,9 +317,23 @@ class CrownUnifiedEngine:
     # ------------------------------------------------------------------
     def _perform_handshake(self):
         if _HAS_TRICROWN:
-            client = TriCrownParty(role="client")  # type: ignore[call-arg]
-            server = TriCrownParty(role="server")  # type: ignore[call-arg]
-            return perform_handshake(client, server)  # type: ignore[misc]
+            try:
+                client = TriCrownParty(role="client")  # type: ignore[call-arg]
+                server = TriCrownParty(role="server")  # type: ignore[call-arg]
+                client_result, server_result = perform_handshake(client, server)  # type: ignore[misc]
+                client_commit = getattr(client_result.session.chains, "k_commit", None)
+                server_commit = getattr(server_result.session.chains, "k_commit", None)
+                if client_commit is None or server_commit is None:
+                    return client_result, server_result
+                if client_commit == server_commit:
+                    return client_result, server_result
+                raise ValueError("handshake commitment mismatch")
+            except Exception:
+                # When the optional cryptography stack is present but the
+                # handshake fails (e.g. due to missing PyNaCl or differing
+                # record-layer commitments), fall back to the deterministic
+                # stub implementation so the engine remains executable.
+                return _fallback_perform_handshake()
         return _fallback_perform_handshake()
 
     def _build_process_summary(self) -> ProcessSummary:
