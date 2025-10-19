@@ -1,86 +1,71 @@
-"""TRI-CROWN math/process annex utilities.
-
-This package exposes high-level helpers that implement the analytical
-components described in the TRI-CROWN 1.1 Math/Process Annex.  They are
-separated from the cryptographic core so that the existing KEM+AEAD
-construction is untouched while still allowing callers to derive the
-additional context binding material defined by the annex.
-"""
+"""TRI-CROWN annex utilities."""
 
 from .math_process import (
-    matrix_exponential,
-    green_convolution,
-    riccati_gain,
-    modal_coordinates,
-    compose_process_and_wave,
-    causal_convolution,
-    fourier_energy_ratios,
-    bigram_probabilities,
-    interrogative_score,
     apply_caesar_shift,
-    reverse_letters,
-    huber_irls,
-    fixed_point_key_binding,
+    bigram_probabilities,
+    causal_convolution,
+    compose_process_and_wave,
     features_digest,
-    math_salt,
-)
-
-__all__ = [
-    "matrix_exponential",
-    "green_convolution",
-    "riccati_gain",
-    "modal_coordinates",
-    "compose_process_and_wave",
-    "causal_convolution",
-    "fourier_energy_ratios",
-    "bigram_probabilities",
-    "interrogative_score",
-    "apply_caesar_shift",
-    "reverse_letters",
-    "huber_irls",
-    "fixed_point_key_binding",
-    "features_digest",
-    "math_salt",
-"""TRI-CROWN Annexes utilities.
-
-This package collects linear-systems, robust statistics, and
-cryptographic helpers referenced in the TRI-CROWN annex specification.
-"""
-
-from .process import (
-    van_loan_discretization,
-    process_matrix,
-    discrete_process_noise,
-    mean_squared_deviation,
-    diagonalize,
-    finite_horizon_lqr,
-    rk4_convolution,
+    fixed_point_key_binding,
+    fourier_energy_ratios,
+    green_convolution,
     huber_irls,
+    interrogative_score,
+    math_salt,
+    matrix_exponential,
+    modal_coordinates,
+    riccati_gain,
+    reverse_letters,
+)
+from .process import (
     caesar_cipher,
+    diagonalize,
     digram_counts,
+    discrete_process_noise,
+    finite_horizon_lqr,
+    mean_squared_deviation,
+    process_matrix,
+    rk4_convolution,
+    van_loan_discretization,
+    huber_irls as process_huber_irls,
 )
 from .kalman import (
     discretize_falling_body,
     process_noise_white_acc,
     kalman_predict,
-    kalman_update,
     kalman_step,
+    kalman_update,
 )
 
 __all__ = [
-    "van_loan_discretization",
-    "process_matrix",
-    "discrete_process_noise",
-    "mean_squared_deviation",
-    "diagonalize",
-    "finite_horizon_lqr",
-    "rk4_convolution",
+    "apply_caesar_shift",
+    "bigram_probabilities",
+    "causal_convolution",
+    "compose_process_and_wave",
+    "features_digest",
+    "fixed_point_key_binding",
+    "fourier_energy_ratios",
+    "green_convolution",
     "huber_irls",
+    "interrogative_score",
+    "math_salt",
+    "matrix_exponential",
+    "modal_coordinates",
+    "riccati_gain",
+    "reverse_letters",
     "caesar_cipher",
+    "diagonalize",
     "digram_counts",
+    "discrete_process_noise",
+    "finite_horizon_lqr",
+    "mean_squared_deviation",
+    "process_matrix",
+    "rk4_convolution",
+    "van_loan_discretization",
+    "process_huber_irls",
     "discretize_falling_body",
     "process_noise_white_acc",
     "kalman_predict",
-    "kalman_update",
     "kalman_step",
+    "kalman_update",
 ]
