@@ -24,11 +24,14 @@ from .math_process import (
     fixed_point_key_binding,
     fourier_energy_ratios,
     green_convolution,
+    huber_irls,
     huber_irls as annex_huber_irls,
     interrogative_score,
     math_salt,
     matrix_exponential,
     modal_coordinates,
+    riccati_gain,
+    reverse_letters,
     reverse_letters,
     riccati_gain,
 )
@@ -43,6 +46,14 @@ from .process import (
     process_matrix,
     rk4_convolution,
     van_loan_discretization,
+    huber_irls as process_huber_irls,
+)
+from .kalman import (
+    discretize_falling_body,
+    process_noise_white_acc,
+    kalman_predict,
+    kalman_step,
+    kalman_update,
 )
 
 # Retain backwards-compatible names for both Huber IRLS helpers.
@@ -66,6 +77,8 @@ __all__ = [
     "math_salt",
     "matrix_exponential",
     "modal_coordinates",
+    "riccati_gain",
+    "reverse_letters",
     "reverse_letters",
     "riccati_gain",
     # process exports
@@ -79,6 +92,7 @@ __all__ = [
     "process_matrix",
     "rk4_convolution",
     "van_loan_discretization",
+    "process_huber_irls",
     # kalman exports
     "discretize_falling_body",
     "kalman_predict",
