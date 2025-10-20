@@ -39,6 +39,8 @@ def _series_expm(A: np.ndarray, dt: float, order: int = 6) -> np.ndarray:
     M = A * dt
     # Scaling and squaring for stability.
     norm = np.linalg.norm(M, ord=np.inf)
+    norm_safe = max(norm, 1e-12)
+    s = max(0, int(math.log2(norm_safe)) - 1)
     if norm == 0:
         s = 0
     else:
