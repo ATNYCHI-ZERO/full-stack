@@ -91,6 +91,26 @@ tests/
 Each helper is documented in-place and mirrors the corresponding section
 of the annex (A–H).  They are intended as a rigorous, testable reference
 for integrating the annex with the broader TRI-CROWN stack.
+
+## Verify README digest
+
+Compute the SHA-256 digest of this README to confirm integrity:
+
+```python
+import hashlib
+
+with open("README.md", "rb") as f:
+    print(hashlib.sha256(f.read()).hexdigest())
+```
+
+## Run the test-suite
+
+Execute the repository tests with `pytest` to confirm the implementation is
+functioning as expected:
+
+```bash
+pytest
+```
 # TRI-CROWN Hybrid PQ → AGI System Architecture (Comprehensive Edition)
 
 ## Abstract
