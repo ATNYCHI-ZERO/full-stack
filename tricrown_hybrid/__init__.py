@@ -33,6 +33,16 @@ try:  # pragma: no cover - optional dependency
     from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305 as _RealChaCha20Poly1305
 except Exception:  # pragma: no cover - fallback implementation used
     _RealChaCha20Poly1305 = None
+from contextlib import suppress
+from dataclasses import dataclass
+from secrets import compare_digest
+from typing import Dict, Optional
+
+from cryptography.hazmat.primitives import hashes, hmac
+from cryptography.hazmat.primitives.asymmetric import x25519
+from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
+from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 
 try:  # pragma: no cover - exercised depending on environment
     import oqs
@@ -291,6 +301,7 @@ def server_finish(ctx: TriCrownContext, message: Dict[str, str]) -> None:
     expected = _finalise_session(ctx, pq_secret)
     provided = _b64d(message["verify"])
     if not secrets.compare_digest(expected, provided):
+    if not compare_digest(expected, provided):
         raise ValueError("handshake verification failed")
 
 
@@ -301,6 +312,8 @@ def _finalise_session(ctx: TriCrownContext, pq_secret: bytes) -> bytes:
 
     secret_material = handshake.dh_shared_secret + pq_secret
     okm = _hkdf(secret_material, length=96, info=b"tricrown-hybrid-session")
+    hkdf = HKDF(algorithm=hashes.SHA256(), length=96, salt=None, info=b"tricrown-hybrid-session")
+    okm = hkdf.derive(secret_material)
     client_send, server_send, root_key = okm[:32], okm[32:64], okm[64:]
 
     transcript = handshake.transcript()
@@ -325,11 +338,15 @@ def _finalise_session(ctx: TriCrownContext, pq_secret: bytes) -> bytes:
 
 def _hmac(key: bytes, data: bytes) -> bytes:
     return hmac.new(key, data, hashlib.sha256).digest()
+    h = hmac.HMAC(key, hashes.SHA256())
+    h.update(data)
+    return h.finalize()
 
 
 def seal(ctx: TriCrownContext, aad: bytes, plaintext: bytes) -> Dict[str, bytes]:
     session = ctx.require_session()
     cipher = _ChaCha20Poly1305(session.send.key)
+    cipher = ChaCha20Poly1305(session.send.key)
     nonce = session.send.next_nonce()
     ciphertext = cipher.encrypt(nonce, plaintext, aad)
     return {"aad": aad, "nonce": nonce, "ct": ciphertext}
@@ -338,6 +355,7 @@ def seal(ctx: TriCrownContext, aad: bytes, plaintext: bytes) -> Dict[str, bytes]
 def open_(ctx: TriCrownContext, record: Dict[str, bytes]) -> bytes:
     session = ctx.require_session()
     cipher = _ChaCha20Poly1305(session.recv.key)
+    cipher = ChaCha20Poly1305(session.recv.key)
     nonce = record["nonce"]
     aad = record.get("aad", b"")
     ciphertext = record["ct"]
@@ -347,6 +365,8 @@ def open_(ctx: TriCrownContext, record: Dict[str, bytes]) -> bytes:
 def rekey(ctx: TriCrownContext) -> None:
     session = ctx.require_session()
     material = _hkdf(session.rk, length=96, info=b"tricrown-rekey")
+    hkdf = HKDF(algorithm=hashes.SHA256(), length=96, salt=None, info=b"tricrown-rekey")
+    material = hkdf.derive(session.rk)
     client_send, server_send, new_root = material[:32], material[32:64], material[64:]
 
     if ctx.role == "client":

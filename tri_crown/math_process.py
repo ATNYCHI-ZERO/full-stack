@@ -40,6 +40,12 @@ def _series_expm(A: np.ndarray, dt: float, order: int = 6) -> np.ndarray:
     # Scaling and squaring for stability.
     norm = np.linalg.norm(M, ord=np.inf)
     if norm == 0:
+        return np.eye(A.shape[0])
+
+    s = max(0, int(math.log2(norm)) - 1)
+    norm_safe = max(norm, 1e-12)
+    s = max(0, int(math.log2(norm_safe)) - 1)
+    if norm == 0:
         s = 0
     else:
         s = max(0, int(math.log2(norm)) - 1)
