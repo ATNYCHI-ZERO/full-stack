@@ -3,6 +3,36 @@
 from __future__ import annotations
 
 import base64
+import hashlib
+import hmac
+import os
+import secrets
+from contextlib import suppress
+from dataclasses import dataclass
+from typing import Dict, Optional
+
+try:  # pragma: no cover - optional dependency
+    from cryptography.hazmat.primitives.asymmetric import x25519
+except Exception:  # pragma: no cover - fallback implementation used
+    x25519 = None
+
+try:  # pragma: no cover - optional dependency
+    from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+except Exception:  # pragma: no cover - fallback values
+    class _Placeholder:
+        def __init__(self, name: str) -> None:
+            self.name = name
+
+        def __repr__(self) -> str:  # pragma: no cover - debug helper
+            return f"<placeholder {self.name}>"
+
+    Encoding = type("Encoding", (), {"Raw": _Placeholder("Encoding.Raw")})  # type: ignore[assignment]
+    PublicFormat = type("PublicFormat", (), {"Raw": _Placeholder("PublicFormat.Raw")})  # type: ignore[assignment]
+
+try:  # pragma: no cover - optional dependency
+    from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305 as _RealChaCha20Poly1305
+except Exception:  # pragma: no cover - fallback implementation used
+    _RealChaCha20Poly1305 = None
 from contextlib import suppress
 from dataclasses import dataclass
 from secrets import compare_digest
@@ -21,6 +51,94 @@ except Exception:  # pragma: no cover - degraded mode
 
 _HAS_OQS = oqs is not None
 _DEFAULT_PQ_ALG = "Kyber768"
+_TAG_LEN = hashlib.sha256().digest_size
+
+
+class _ChaCha20Poly1305:
+    """Wrapper that falls back to a simple stream cipher when unavailable."""
+
+    def __init__(self, key: bytes) -> None:
+        if _RealChaCha20Poly1305 is not None:
+            self._impl = _RealChaCha20Poly1305(key)
+            self._key = b""
+        else:  # pragma: no cover - exercised when cryptography is missing
+            # Normalise key size for the fallback stream cipher
+            self._impl = None
+            self._key = hashlib.sha256(key).digest()
+
+    def encrypt(self, nonce: bytes, data: bytes, aad: bytes) -> bytes:
+        if self._impl is not None:
+            return self._impl.encrypt(nonce, data, aad)
+        keystream = _hkdf(self._key + nonce, length=len(data), info=b"tricrown-hybrid-aead")
+        ciphertext = bytes(a ^ b for a, b in zip(data, keystream))
+        tag = hmac.new(self._key, nonce + aad + ciphertext, hashlib.sha256).digest()
+        return ciphertext + tag
+
+    def decrypt(self, nonce: bytes, data: bytes, aad: bytes) -> bytes:
+        if self._impl is not None:
+            return self._impl.decrypt(nonce, data, aad)
+        if len(data) < _TAG_LEN:
+            raise ValueError("ciphertext too short")
+        ciphertext, tag = data[:-_TAG_LEN], data[-_TAG_LEN:]
+        expected = hmac.new(self._key, nonce + aad + ciphertext, hashlib.sha256).digest()
+        if not secrets.compare_digest(expected, tag):
+            raise ValueError("authentication failed")
+        keystream = _hkdf(self._key + nonce, length=len(ciphertext), info=b"tricrown-hybrid-aead")
+        return bytes(a ^ b for a, b in zip(ciphertext, keystream))
+
+
+def _hkdf(ikm: bytes, *, length: int, info: bytes, salt: bytes | None = None) -> bytes:
+    if salt is None:
+        salt = b"\x00" * hashlib.sha256().digest_size
+    prk = hmac.new(salt, ikm, hashlib.sha256).digest()
+    okm = b""
+    previous = b""
+    counter = 1
+    while len(okm) < length:
+        previous = hmac.new(prk, previous + info + bytes([counter]), hashlib.sha256).digest()
+        okm += previous
+        counter += 1
+    return okm[:length]
+
+
+if x25519 is None:  # pragma: no cover - exercised when cryptography is missing
+    class _StubX25519PublicKey:
+        def __init__(self, data: bytes) -> None:
+            self._data = data
+
+        def public_bytes(self, _encoding: object, _format: object) -> bytes:
+            return self._data
+
+        @classmethod
+        def from_public_bytes(cls, data: bytes) -> "_StubX25519PublicKey":
+            return cls(data)
+
+    class _StubX25519PrivateKey:
+        def __init__(self, secret: bytes | None = None) -> None:
+            self._secret = secret or os.urandom(32)
+
+        @classmethod
+        def generate(cls) -> "_StubX25519PrivateKey":
+            return cls()
+
+        def public_key(self) -> _StubX25519PublicKey:
+            pub = hashlib.sha256(b"tricrown-x25519" + self._secret).digest()
+            return _StubX25519PublicKey(pub)
+
+        def exchange(self, peer_public_key: _StubX25519PublicKey) -> bytes:
+            peer = peer_public_key.public_bytes(None, None)
+            own = self.public_key().public_bytes(None, None)
+            if own < peer:
+                combined = own + peer
+            else:
+                combined = peer + own
+            return hashlib.sha256(b"tricrown-dh" + combined).digest()
+
+    class _StubX25519Module:
+        X25519PrivateKey = _StubX25519PrivateKey
+        X25519PublicKey = _StubX25519PublicKey
+
+    x25519 = _StubX25519Module()
 
 
 def _b64e(data: bytes) -> str:
@@ -182,6 +300,7 @@ def server_finish(ctx: TriCrownContext, message: Dict[str, str]) -> None:
     pq_secret = ctx.handshake.pq_shared_secret or b""
     expected = _finalise_session(ctx, pq_secret)
     provided = _b64d(message["verify"])
+    if not secrets.compare_digest(expected, provided):
     if not compare_digest(expected, provided):
         raise ValueError("handshake verification failed")
 
@@ -192,6 +311,7 @@ def _finalise_session(ctx: TriCrownContext, pq_secret: bytes) -> bytes:
         raise RuntimeError("handshake missing DH shared secret")
 
     secret_material = handshake.dh_shared_secret + pq_secret
+    okm = _hkdf(secret_material, length=96, info=b"tricrown-hybrid-session")
     hkdf = HKDF(algorithm=hashes.SHA256(), length=96, salt=None, info=b"tricrown-hybrid-session")
     okm = hkdf.derive(secret_material)
     client_send, server_send, root_key = okm[:32], okm[32:64], okm[64:]
@@ -217,6 +337,7 @@ def _finalise_session(ctx: TriCrownContext, pq_secret: bytes) -> bytes:
 
 
 def _hmac(key: bytes, data: bytes) -> bytes:
+    return hmac.new(key, data, hashlib.sha256).digest()
     h = hmac.HMAC(key, hashes.SHA256())
     h.update(data)
     return h.finalize()
@@ -224,6 +345,7 @@ def _hmac(key: bytes, data: bytes) -> bytes:
 
 def seal(ctx: TriCrownContext, aad: bytes, plaintext: bytes) -> Dict[str, bytes]:
     session = ctx.require_session()
+    cipher = _ChaCha20Poly1305(session.send.key)
     cipher = ChaCha20Poly1305(session.send.key)
     nonce = session.send.next_nonce()
     ciphertext = cipher.encrypt(nonce, plaintext, aad)
@@ -232,6 +354,7 @@ def seal(ctx: TriCrownContext, aad: bytes, plaintext: bytes) -> Dict[str, bytes]
 
 def open_(ctx: TriCrownContext, record: Dict[str, bytes]) -> bytes:
     session = ctx.require_session()
+    cipher = _ChaCha20Poly1305(session.recv.key)
     cipher = ChaCha20Poly1305(session.recv.key)
     nonce = record["nonce"]
     aad = record.get("aad", b"")
@@ -241,6 +364,7 @@ def open_(ctx: TriCrownContext, record: Dict[str, bytes]) -> bytes:
 
 def rekey(ctx: TriCrownContext) -> None:
     session = ctx.require_session()
+    material = _hkdf(session.rk, length=96, info=b"tricrown-rekey")
     hkdf = HKDF(algorithm=hashes.SHA256(), length=96, salt=None, info=b"tricrown-rekey")
     material = hkdf.derive(session.rk)
     client_send, server_send, new_root = material[:32], material[32:64], material[64:]

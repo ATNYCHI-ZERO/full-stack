@@ -1,3 +1,4 @@
+"""Public API for the :mod:`tri_crown` utility package."""
 """TRI-CROWN annex utilities."""
 
 from . import kalman, math_process, process
@@ -56,6 +57,9 @@ from .kalman import (
     kalman_update,
 )
 
+# Export a unified ``huber_irls`` symbol that defaults to the annex version while
+# still giving callers access to the legacy implementation via
+# ``process_huber_irls``.
 # Retain backwards-compatible names for both Huber IRLS helpers.
 huber_irls = annex_huber_irls
 legacy_huber_irls = process_huber_irls
@@ -89,6 +93,7 @@ __all__ = [
     "finite_horizon_lqr",
     "legacy_huber_irls",
     "mean_squared_deviation",
+    "process_huber_irls",
     "process_matrix",
     "rk4_convolution",
     "van_loan_discretization",
