@@ -1,0 +1,59 @@
+\documentclass[runningheads]{llncs}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+
+\begin{document}
+
+\title{Chronos: A Triple-Hybrid Post-Quantum Key Encapsulation Mechanism for Lineage-Based Threat Resilience}
+\author{Anonymous}
+\institute{}
+\maketitle
+
+\begin{abstract}
+The advent of scalable quantum computing signals a fundamental paradigm shift in cryptography, creating a bifurcated threat landscape where systems must remain secure against both powerful classical adversaries and future quantum adversaries. This transitional era necessitates cryptographic constructions that bridge the security guarantees of well-established classical primitives with the quantum-resistant properties of new post-quantum schemes. We introduce Chronos, a post-quantum hybrid key encapsulation mechanism (KEM) designed for long-term resilience. Chronos orchestrates a triple-hybrid handshake combining X25519, ML-KEM, and Classic McEliece. By binding their outputs within a unified key schedule, Chronos ensures that its security relies on the hardness of at least one of the underlying problems, providing a conservative defense-in-depth strategy against future cryptanalytic advances.
+\end{abstract}
+
+\section{Introduction}
+The field of cryptography is currently navigating a period of significant upheaval. For decades, the security of widely deployed public-key infrastructure has been built upon the presumed intractability of problems like the integer factorization problem and the discrete logarithm problem. The development of a cryptographically relevant quantum computer capable of executing Shor's algorithm would render these foundational assumptions obsolete. This imminent threat has motivated a global cryptographic migration, most prominently embodied by the National Institute of Standards and Technology (NIST) Post-Quantum Cryptography standardization process.
+
+While new standards based on assumptions like the hardness of lattice, code, isogeny, and multivariate problems are emerging, the transition period is fraught with uncertainty. Confidence in these new primitives is still developing, and an unforeseen breakthrough against a single class of post-quantum algorithms remains a possibility. During this era, relying solely on classical algorithms invites future compromise, while relying exclusively on a single new post-quantum algorithm incurs risk. A prudent approach is to employ hybrid cryptography, which combines classical and post-quantum primitives in a single protocol.
+
+\section{Preliminaries}
+We rely on standard public-key cryptographic tools including key encapsulation mechanisms (KEMs), authenticated encryption with associated data (AEAD), and key derivation functions (KDFs). Chronos uses the following primitives: X25519 for classical elliptic-curve Diffie--Hellman, ML-KEM-1024 as the primary post-quantum primitive based on module lattices, and Classic McEliece 6960119 as a secondary post-quantum primitive based on code-based cryptography.
+
+\section{Protocol Overview}
+Chronos establishes a shared session secret through a single-flow authenticated handshake. Bob holds long-term public keys $(pk_{\text{X25519}}, pk_{\text{ML-KEM}}, pk_{\text{McEliece}})$. Alice initiates the handshake by generating an ephemeral X25519 key pair, performing Diffie--Hellman with Bob's public key, and encapsulating to Bob under ML-KEM and Classic McEliece. She transmits the resulting ciphertexts and her ephemeral public key. Bob decapsulates each ciphertext and computes the shared X25519 secret to obtain the tuple $(ss_{\text{X25519}}, ss_{\text{ML-KEM}}, ss_{\text{McEliece}})$.
+
+\section{Key Schedule}
+Both parties concatenate the shared secrets to derive initial keying material:
+\begin{equation}
+    \mathsf{IKM} = ss_{\text{X25519}} \parallel ss_{\text{ML-KEM}} \parallel ss_{\text{McEliece}}.
+\end{equation}
+Chronos uses HKDF with the transcript hash as salt. The resulting pseudorandom key is expanded into a master secret and subsequent traffic keys, binding the confidentiality of the session to the complete handshake transcript and ensuring resistance to unknown key-share attacks.
+
+\section{Security Considerations}
+Chronos achieves hybrid security because the session key remains indistinguishable from random unless an adversary defeats all three underlying primitives. Algorithmic diversity ensures that a breakthrough against lattice-based schemes does not undermine the protection afforded by code-based cryptography, and vice versa. The key schedule's use of the transcript hash commits the resulting keys to the precise handshake context, while optional ratcheting with fresh ephemeral keys provides forward secrecy.
+
+\section{Conclusion and Future Work}
+Chronos provides a conservative, high-assurance framework for hybrid key exchange designed to withstand the transition from classical to quantum-resistant cryptography. Future work includes formal security proofs in the Bellare--Rogaway model, detailed performance analysis on constrained hardware, and a comprehensive reference implementation.
+
+\begin{thebibliography}{9}
+\bibitem{bernstein2006curve25519}
+D. J. Bernstein. Curve25519: New Diffie--Hellman Speed Records. In: Public Key Cryptography -- PKC 2006, LNCS 3958, pp. 207--228. Springer (2006).
+
+\bibitem{bindel2020kyber}
+N. Bindel et al. CRYSTALS-Kyber. Submission to the NIST Post-Quantum Cryptography Standardization Process, Round 3 (2020).
+
+\bibitem{bernstein2020mceliece}
+D. J. Bernstein et al. Classic McEliece. Submission to the NIST Post-Quantum Cryptography Standardization Process, Round 3 (2020).
+
+\bibitem{krawczyk2010hkdf}
+H. Krawczyk and P. Eronen. HMAC-based Extract-and-Expand Key Derivation Function (HKDF). RFC 5869 (2010).
+
+\bibitem{bellare1994entity}
+M. Bellare and P. Rogaway. Entity Authentication and Key Distribution. In: Advances in Cryptology -- CRYPTO '93, LNCS 773, pp. 232--249. Springer (1994).
+\end{thebibliography}
+
+\end{document}
