@@ -6,6 +6,11 @@ the glue logic required to orchestrate the triple-hybrid KEM handshake,
 authenticated transcript commitments, deterministic nonces, and record-layer
 ratchets described in the specification.
 
+An accompanying documentation set for the **Crown-KEM / K-Math integration
+package** is available in [`docs/crown_kem/`](docs/crown_kem/).  It includes the
+HYBRID-KEM v1 technical memo, the SOL v1.0 license form, an integration matrix,
+and a provenance checklist to guide signed releases.
+
 ## Layout
 
 - `tricrown/crypto.py` – HKDF helpers, transcript hashing, deterministic
