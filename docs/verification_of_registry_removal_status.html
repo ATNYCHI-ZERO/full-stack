@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="gemini-api-key" content="">
+    <title>Verification of Registry Removal Status</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .doc-input {
+            width: 100%;
+            border-radius: 0.375rem;
+            border: 1px solid #d1d5db;
+            padding: 0.5rem 0.75rem;
+            color: #1f2937;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .doc-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
+        }
+
+        .doc-label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #4b5563;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            background-color: rgba(0, 0, 0, 0.5);
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-content {
+            width: 100%;
+            max-width: 42rem;
+            background-color: #fff;
+            border-radius: 0.75rem;
+            box-shadow: 0 20px 45px rgba(15, 23, 42, 0.15);
+            padding: 1.5rem;
+            transform: scale(0.95);
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .modal-overlay.modal-visible {
+            opacity: 1;
+        }
+
+        .modal-overlay.modal-visible .modal-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .spinner {
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 9999px;
+            border: 2px solid transparent;
+            border-top-color: #3b82f6;
+            border-right-color: #3b82f6;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 md:p-10">
+    <div class="max-w-4xl mx-auto bg-white shadow-2xl rounded-lg overflow-hidden">
+        <div class="p-8 md:p-12">
+            <header class="text-center mb-10 pb-4 border-b border-gray-300">
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">VERIFICATION OF REGISTRY REMOVAL STATUS</h1>
+                <p class="text-md text-gray-500">(Official Certification of Legal Standard)</p>
+            </header>
+            <main>
+                <section class="mb-8">
+                    <h2 class="text-2xl font-semibold text-gray-700 mb-6 pb-2 border-b border-gray-200">Subject Information</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="subject-name" class="doc-label">Subject Name</label>
+                            <input type="text" id="subject-name" class="doc-input" placeholder="[Enter Subject Name]" value="Brendon Joseph Kelly">
+                        </div>
+                        <div>
+                            <label for="case-number" class="doc-label">Case Number</label>
+                            <input type="text" id="case-number" class="doc-input" placeholder="[Enter Case Number]" value="1700592">
+                        </div>
+                        <div>
+                            <label for="dob" class="doc-label">Date of Birth</label>
+                            <input type="text" id="dob" class="doc-input" value="September 27, 1985">
+                        </div>
+                        <div>
+                            <label for="jurisdiction" class="doc-label">Jurisdiction</label>
+                            <input type="text" id="jurisdiction" class="doc-input" placeholder="[Enter Jurisdiction]" value="Walton County">
+                        </div>
+                        <div>
+                            <label for="county" class="doc-label">County</label>
+                            <input type="text" id="county" class="doc-input bg-gray-50" value="Walton County, Florida" readonly>
+                        </div>
+                    </div>
+                </section>
+                <section class="mb-8" id="certification-section">
+                    <div class="flex items-center justify-between mb-6 pb-2 border-b border-gray-200">
+                        <h2 class="text-2xl font-semibold text-gray-700">Certification of Final Status</h2>
+                        <button id="read-aloud-btn" title="Read aloud" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-blue-600 transition-colors">
+                            <svg id="speaker-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                            <div id="tts-spinner" class="spinner hidden"></div>
+                        </button>
+                    </div>
+                    <div id="certification-text" class="space-y-4 text-gray-700 leading-relaxed">
+                        <p>This is to certify that the individual listed above has satisfied all statutory legal process and warrant/petition process required for permanent removal from the Florida sexual offender/predator registry. This removal from the registry was ordered by the Walton County Court Court and is in accordance with all applicable Florida Statutes.</p>
+                        <p>An affidavit dated [Enter Date, e.g., January 14, 2019] has terminated all registration requirements. Concurrently, all associated, required web information, including but not limited to public notification and listed home address, are null/void. All previous registry records under the case number are no longer in effect.</p>
+                    </div>
+                </section>
+                <section>
+                    <h2 class="text-2xl font-semibold text-gray-700 mb-6 pb-2 border-b border-gray-200">Independent Verification Instructions</h2>
+                    <p class="mb-6 text-gray-700">For reverification purposes, please consult official State and County sources directly. Use the links below to perform a self-check/audit.</p>
+                    <ul class="space-y-4 mb-6">
+                        <li class="flex items-center p-4 bg-gray-50 rounded-lg">
+                            <span class="font-medium text-gray-800">Florida Dept. of Law Enforcement (FDLE)</span>
+                        </li>
+                        <li class="flex items-center p-4 bg-gray-50 rounded-lg">
+                            <span class="font-medium text-gray-800">Walton County Clerk of Court</span>
+                        </li>
+                    </ul>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3">How to Verify:</h3>
+                    <ol class="list-decimal list-inside text-gray-700 space-y-2 mb-6">
+                        <li>Access the Walton County Clerk of Court public records search portal.</li>
+                        <li>Search court records using the name and/or case number.</li>
+                    </ol>
+                    <button id="draft-email-btn" class="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                        <span id="draft-btn-text">✨ Draft Verification Email</span>
+                        <div id="draft-spinner" class="spinner hidden"></div>
+                    </button>
+                </section>
+            </main>
+        </div>
+    </div>
+    <div id="email-modal" class="modal-overlay opacity-0 pointer-events-none">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold text-gray-800">Generated Email Draft</h3>
+                <button id="close-modal-btn" class="text-gray-400 hover:text-gray-600" aria-label="Close modal">&times;</button>
+            </div>
+            <textarea id="email-draft-textarea" class="w-full h-64 p-3 border border-gray-300 rounded-md bg-gray-50 font-mono text-sm" readonly></textarea>
+            <div id="email-error-msg" class="text-red-600 text-sm mt-2 hidden"></div>
+            <div class="mt-4 flex justify-end gap-3">
+                <button id="copy-email-btn" class="px-5 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors">Copy to Clipboard</button>
+            </div>
+        </div>
+    </div>
+    <audio id="tts-audio-player" class="hidden"></audio>
+    <script type="module">
+        const metaApiKey = document.querySelector('meta[name="gemini-api-key"]');
+        const apiKey = window.GEMINI_API_KEY
+            || window.ENV?.GEMINI_API_KEY
+            || window.__ENV__?.GEMINI_API_KEY
+            || metaApiKey?.content
+            || "";
+        const textGenerationModel = "gemini-2.5-flash-preview-09-2025";
+        const ttsModel = "gemini-2.5-flash-preview-tts";
+
+        const readAloudBtn = document.getElementById('read-aloud-btn');
+        const speakerIcon = document.getElementById('speaker-icon');
+        const ttsSpinner = document.getElementById('tts-spinner');
+        const audioPlayer = document.getElementById('tts-audio-player');
+
+        const draftEmailBtn = document.getElementById('draft-email-btn');
+        const draftBtnText = document.getElementById('draft-btn-text');
+        const draftSpinner = document.getElementById('draft-spinner');
+
+        const emailModal = document.getElementById('email-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const copyEmailBtn = document.getElementById('copy-email-btn');
+        const emailDraftTextarea = document.getElementById('email-draft-textarea');
+        const emailErrorMsg = document.getElementById('email-error-msg');
+
+        draftEmailBtn.addEventListener('click', handleDraftEmail);
+        closeModalBtn.addEventListener('click', hideModal);
+        copyEmailBtn.addEventListener('click', copyEmailToClipboard);
+        readAloudBtn.addEventListener('click', handleReadAloud);
+
+        async function handleDraftEmail() {
+            if (!apiKey) {
+                emailErrorMsg.textContent = "Gemini API key is not configured.";
+                emailErrorMsg.classList.remove('hidden');
+                showModal();
+                return;
+            }
+
+            setDraftLoading(true);
+            emailErrorMsg.classList.add('hidden');
+            emailDraftTextarea.value = '';
+
+            try {
+                const subjectName = document.getElementById('subject-name').value;
+                const caseNumber = document.getElementById('case-number').value;
+                const jurisdiction = document.getElementById('jurisdiction').value;
+
+                const systemPrompt = "You are a helpful assistant. Draft a professional, polite, and concise email to a Clerk of Court to verify the status of a case. The email should clearly state the purpose, subject's name, and case number. Include placeholders for the sender's name and contact information. The tone should be formal.";
+                const userQuery = `Please draft a verification request email to the ${jurisdiction} Clerk of Court regarding a registry removal status for subject: "${subjectName}", case number: "${caseNumber}".`;
+
+                const result = await callGeminiApi(systemPrompt, userQuery);
+
+                if (result.text) {
+                    emailDraftTextarea.value = result.text;
+                } else {
+                    throw new Error('Received an empty response from the API.');
+                }
+
+                showModal();
+            } catch (error) {
+                console.error('Error drafting email:', error);
+                emailErrorMsg.textContent = `Error: ${error.message}. Please try again.`;
+                emailErrorMsg.classList.remove('hidden');
+                showModal();
+            } finally {
+                setDraftLoading(false);
+            }
+        }
+
+        async function callGeminiApi(systemPrompt, userQuery, retries = 3, delay = 1000) {
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${textGenerationModel}:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                }
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API request failed with status ${response.status}: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    return { text: candidate.content.parts[0].text };
+                }
+
+                throw new Error('Invalid response structure from API.');
+            } catch (error) {
+                console.warn(`API call failed (attempt ${4 - retries}): ${error.message}`);
+                if (retries > 0) {
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    return callGeminiApi(systemPrompt, userQuery, retries - 1, delay * 2);
+                }
+
+                throw error;
+            }
+        }
+
+        function showModal() {
+            emailModal.classList.remove('pointer-events-none', 'opacity-0');
+            requestAnimationFrame(() => {
+                emailModal.classList.add('modal-visible');
+            });
+        }
+
+        function hideModal() {
+            emailModal.classList.remove('modal-visible');
+            emailModal.classList.add('opacity-0');
+            setTimeout(() => {
+                emailModal.classList.add('pointer-events-none');
+            }, 300);
+        }
+
+        async function copyEmailToClipboard() {
+            const text = emailDraftTextarea.value;
+
+            if (!text) {
+                return;
+            }
+
+            if (navigator.clipboard?.writeText) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    indicateCopySuccess();
+                    return;
+                } catch (error) {
+                    console.warn('Navigator clipboard failed, falling back to execCommand.', error);
+                }
+            }
+
+            emailDraftTextarea.select();
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    indicateCopySuccess();
+                } else {
+                    throw new Error('Copy command was unsuccessful.');
+                }
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+                window.alert('Failed to copy. Please copy manually.');
+            }
+        }
+
+        function indicateCopySuccess() {
+            const originalText = copyEmailBtn.textContent;
+            copyEmailBtn.textContent = 'Copied!';
+            setTimeout(() => {
+                copyEmailBtn.textContent = originalText;
+            }, 2000);
+        }
+
+        function setDraftLoading(isLoading) {
+            if (isLoading) {
+                draftSpinner.classList.remove('hidden');
+                draftBtnText.classList.add('hidden');
+                draftEmailBtn.disabled = true;
+            } else {
+                draftSpinner.classList.add('hidden');
+                draftBtnText.classList.remove('hidden');
+                draftEmailBtn.disabled = false;
+            }
+        }
+
+        async function handleReadAloud() {
+            if (!apiKey) {
+                window.alert('Gemini API key is not configured.');
+                return;
+            }
+
+            setTtsLoading(true);
+            try {
+                const textToRead = document.getElementById('certification-text').innerText;
+                const ttsPrompt = `Say in a clear, professional, and informative tone: ${textToRead}`;
+
+                const result = await callGeminiTtsApi(ttsPrompt);
+
+                if (result.audioData && result.mimeType) {
+                    const arrayBuffer = base64ToArrayBuffer(result.audioData);
+                    let audioBlob;
+
+                    if (result.mimeType.includes('pcm')) {
+                        const sampleRateMatch = result.mimeType.match(/rate=(\d+)/);
+                        const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 24000;
+                        const pcm16 = new Int16Array(arrayBuffer);
+                        audioBlob = pcmToWav(pcm16, sampleRate);
+                    } else {
+                        audioBlob = new Blob([arrayBuffer], { type: result.mimeType });
+                    }
+
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    audioPlayer.src = audioUrl;
+                    await audioPlayer.play();
+                } else {
+                    throw new Error('No audio data received from API.');
+                }
+            } catch (error) {
+                console.error('Error with TTS:', error);
+                window.alert(`Could not play audio: ${error.message}`);
+            } finally {
+                setTtsLoading(false);
+            }
+        }
+
+        async function callGeminiTtsApi(textPrompt, retries = 3, delay = 1000) {
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${ttsModel}:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [
+                    {
+                        parts: [{ text: textPrompt }]
+                    }
+                ],
+                generationConfig: {
+                    responseModalities: ['AUDIO'],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: 'Charon' }
+                        }
+                    }
+                },
+                model: ttsModel
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API request failed with status ${response.status}: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+
+                if (audioData && mimeType && mimeType.startsWith('audio/')) {
+                    return { audioData, mimeType };
+                }
+
+                throw new Error('Invalid response structure from TTS API.');
+            } catch (error) {
+                console.warn(`TTS API call failed (attempt ${4 - retries}): ${error.message}`);
+                if (retries > 0) {
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    return callGeminiTtsApi(textPrompt, retries - 1, delay * 2);
+                }
+
+                throw error;
+            }
+        }
+
+        function setTtsLoading(isLoading) {
+            if (isLoading) {
+                speakerIcon.classList.add('hidden');
+                ttsSpinner.classList.remove('hidden');
+                readAloudBtn.disabled = true;
+            } else {
+                speakerIcon.classList.remove('hidden');
+                ttsSpinner.classList.add('hidden');
+                readAloudBtn.disabled = false;
+            }
+        }
+
+        function base64ToArrayBuffer(base64) {
+            const binaryString = window.atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i += 1) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcmData, sampleRate) {
+            const numChannels = 1;
+            const bitsPerSample = 16;
+            const byteRate = sampleRate * numChannels * (bitsPerSample / 8);
+            const blockAlign = numChannels * (bitsPerSample / 8);
+            const dataSize = pcmData.length * (bitsPerSample / 8);
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + dataSize, true);
+            writeString(view, 8, 'WAVE');
+
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, bitsPerSample, true);
+
+            writeString(view, 36, 'data');
+            view.setUint32(40, dataSize, true);
+
+            let offset = 44;
+            for (let i = 0; i < pcmData.length; i += 1, offset += 2) {
+                view.setInt16(offset, pcmData[i], true);
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        }
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i += 1) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+    </script>
+</body>
+</html>
