@@ -1,0 +1,159 @@
+\documentclass[11pt, a4paper]{article}
+
+% --- UNIVERSAL PREAMBLE BLOCK ---
+\usepackage[a4paper, top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm]{geometry}
+\usepackage{fontspec}
+\usepackage[english, bidi=basic, provide=*]{babel}
+\babelprovide[import, onchar=ids fonts]{english}
+
+% Set default/Latin font to Sans Serif in the main (rm) slot
+\babelfont{rm}{Noto Sans}
+\usepackage{enumitem} % For list customization
+\setlist{nosep} % Compact lists
+\usepackage{parskip} % Use spaces between paragraphs, not indents
+\usepackage{hyperref} % For links, must be last
+
+% Document specific
+\usepackage{tcolorbox}
+\tcbuselibrary{skins}
+
+\begin{document}
+\pagestyle{empty} % No page numbers for a memo
+
+\begin{center}
+    \Large \textbf{CROWN-KEM / K-MATH INTEGRATION PACKAGE --- TECHNICAL MEMO} \\
+    \large \textbf{Author: Brendon Joseph Kelly (Atnychi)} \\
+    \large \textbf{Date: [YYYY-MM-DD]}
+\end{center}
+
+\vspace{0.5cm}
+
+\begin{tcolorbox}[
+    colback=gray!5!white,
+    colframe=black,
+    sharp corners,
+    boxrule=1pt,
+    title=\textbf{NOTICE},
+    fonttitle=\bfseries
+]
+This package purposefully excludes any exploit, weaponized code,
+or instructions for illegal or classified operations. It is lawful,
+auditable, and intended for defensive, research, and government review.
+\end{tcolorbox}
+
+\section*{GOAL: Build a hybrid post-quantum suite wrapped with K-Math provenance.}
+
+\section*{Summary findings (from recent ePrint items):}
+\begin{itemize}
+    \item \textbf{Priority primitives:} lattice (LWE/ML-KEM/Kyber variants), code-based (Classic McEliece), targeted FHE kernel (BFV/CKKS).
+    \item \textbf{Key protocol themes:} hybrid KEM transforms, threshold DKG, PAKE, PIR, ZK/SNARK wrappers, anonymous credentials.
+    \item \textbf{Implementation themes:} optimize for ARM/RISC-V/x86 (AVX2). Use liboqs/pqclean as base.
+    \item \textbf{Attack vectors to mitigate:} CCA side-channels (shuffled Kyber), lattice hybrid attacks, EMFI and profiled leakage, batched attack surfaces.
+    \item \textbf{Hardening:} masking, constant-time algorithms, EMFI detection circuits, automated leakage testing harness, CI-based side-channel regression tests.
+    \item \textbf{K-Math role:} metadata/operator grammar. Do not alter primitive internals. Use K-Math to sign, label, and prove compositions.
+\end{itemize}
+
+\section*{Immediate engineering priorities:}
+\begin{enumerate}
+    \item Triage top 10 papers; extract practical mitigations.
+    \item Select primitives (2--3) and fix parameters.
+    \item Design hybrid deterministic KEM transform and test vectors.
+    \item Implement reference (Rust/C) with modular shims to pqclean/liboqs.
+    \item Add hardening: masked decapsulation, constant-time, EMFI detectors.
+    \item Formalize composition proofs and publish K-Math operator spec.
+\end{enumerate}
+
+\section*{Deliverables recommended now (included in this package):}
+\begin{itemize}
+    \item HYBRID-KEM v1 spec.
+\end{itemize}
+
+\subsection*{HYBRID-KEM v1 SPEC (K-MATH WRAPPED)}
+
+\paragraph{Status} Specification Only
+
+\paragraph{Name} HYBRID-KEM v1 (K-Math Wrapped)
+
+\paragraph{Definitions}
+\begin{description}
+    \item[Primitive $P_1$] $= \Omega_{\text{LATTICE}}$ (example: ML-KEM variant)
+    \item[Primitive $P_2$] $= \Omega_{\text{CODE}}$ (example: Classic McEliece)
+    \item[Primitive $P_3$] $= \Omega_{\text{FHE}}$ (optional FHE kernel, BFV/CKKS)
+\end{description}
+
+\paragraph{Data structures (spec only)}
+\begin{verbatim}
+// K-Math Provenance Token
+struct KToken {
+  operator: string;      // K-Math operator token (e.g., "\Omega_\text{LATTICE}")
+  params: JSON;          // primitive params
+  author: string;        // author identifier
+  timestamp: ISO8601;
+  commit_hash: hex;      // Git commit hash of the reference code
+  signature: bytes;      // signature by AuthorKey (Ed25519/P-256/GPG)
+}
+\end{verbatim}
+
+\paragraph{API (spec only)}
+\begin{verbatim}
+// Key generation (reference)
+KEM_Keypair keygen(primitive_id, params, seed_opt)
+
+// Encapsulation
+(encaps_cts, ktoken, ss) = encapsulate(pk, context)
+- encaps_cts: {ct_P1, ct_P2, ...}
+- ktoken: KToken signed by AuthorKey
+- ss: shared_secret derived deterministically
+
+// Decapsulation
+ss = decapsulate(sk, encaps_cts, ktoken, context)
+- MUST verify ktoken signature and commit_hash integrity before secret operations
+\end{verbatim}
+
+\paragraph{Hybrid composition}
+\[
+\text{shared\_secret} = \text{KDF}\bigl( H( \text{ct}_{P_1} \Vert \text{ct}_{P_2} \Vert \text{context} \Vert \text{ktoken.signature} ) \bigr)
+\]
+
+$H$ is a collision-resistant hash (SHA-3/Keccak family).\newline
+KDF is HKDF-SHA3 or equivalent.
+
+\paragraph{Security goals}
+\begin{itemize}
+    \item Achieve IND-CCA2 under composition reductions to primitives.
+    \item Forward secrecy when ephemeral keys used.
+    \item Side-channel mitigation via masked decapsulation and constant-time codepaths.
+    \item Integrity checks enforce pre-decapsulation validation.
+\end{itemize}
+
+\paragraph{K-Math operator mapping examples}
+\begin{description}
+    \item[$\Omega_{\text{LATTICE}}$] $\rightarrow \{\text{"primitive":"ML-KEM","params":{"n":...,"q":...}}\}$
+    \item[$\Omega_{\text{CODE}}$] $\rightarrow \{\text{"primitive":"McEliece","params":{"m":...,"t":...}}\}$
+    \item[$\Omega_{\text{FHE}}$] $\rightarrow \{\text{"primitive":"BFV","params":{"poly":...,"q":...}}\}$
+\end{description}
+
+\paragraph{Provenance workflow}
+\begin{enumerate}
+    \item Author commits code and spec to git.
+    \item Tag commit, generate commit\_hash.
+    \item Create KToken with chain $= [\Omega_{\text{LATTICE}}, \Omega_{\text{CODE}}, \ldots]$, include commit\_hash.
+    \item Sign KToken with AuthorKey (GPG/EdDSA).
+    \item Publish signed KToken alongside test vectors.
+\end{enumerate}
+
+\paragraph{Interoperability}
+\begin{itemize}
+    \item Provide shim adapters for each primitive to standardize ciphertext and key encodings.
+    \item Provide deterministic test seeds for reproducibility.
+\end{itemize}
+
+\section*{Supporting inventory}
+\begin{itemize}
+    \item integration\_matrix.csv.
+    \item README / API skeleton.
+    \item Sovereign Attribution \& License.
+    \item Provenance checklist and Git/GPG commands.
+\end{itemize}
+
+\end{document}

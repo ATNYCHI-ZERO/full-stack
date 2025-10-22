@@ -1,0 +1,10 @@
+paper_id,title,role,priority,hardening_notes
+2025-1956,"Chosen-Ciphertext Side-Channel on Shuffled Kyber","primitive/highlight","high","avoid naive shuffling; require masked decap"
+2025-1955,"Lattice IND-CCA Threshold KEM (BCHK+)","basis-primitive","high","design DKG and threshold proofs"
+2025-1910,"Coil-Based EMFI Case Study","hardware-hardening","high","add EMFI detectors + runtime checks"
+2025-1771,"Batched Blind Signatures from Lattices","protocols","medium","ensure batch verification and canonical ordering"
+2025-1952,"GPV Preimage Sampling with Weak Smoothness","lattice-signatures","medium","adapt parameter selection"
+2025-1940,"Neural Leakage Model (deep leakage)","side-channel","high","integrate NN leakage detectors into CI"
+2025-1931,"Homomorphic Field Trace Revisited","FHE","medium","noise management and cubic-noise mitigation"
+2025-1951,"Phalanx: FHE-Friendly SNARKs","ZK/proof","medium","provide ZK wrappers and transcript formats"
+2025-1961,"Anamorphic Monero Transactions","privacy-apps","low","review AML implications before deployment"

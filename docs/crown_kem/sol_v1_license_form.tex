@@ -1,0 +1,82 @@
+\documentclass[11pt, a4paper]{article}
+
+% --- UNIVERSAL PREAMBLE BLOCK ---
+\usepackage[a4paper, top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm]{geometry}
+\usepackage{fontspec}
+\usepackage[english, bidi=basic, provide=*]{babel}
+\babelprovide[import, onchar=ids fonts]{english}
+\babelfont{rm}{Noto Sans}
+\usepackage{enumitem} % For list customization
+\usepackage{parskip} % Use spaces between paragraphs, not indents
+
+% --- HYPERREF FOR FILLABLE FIELDS ---
+% Must be last package
+\usepackage{hyperref}
+
+\begin{document}
+\pagestyle{empty}
+
+\begin{center}
+    \Large \textbf{SOVEREIGN ATTRIBUTION \& LICENSE (SOL v1.0)}
+\end{center}
+
+\vspace{0.5cm}
+
+% --- BEGIN FILLABLE FORM ---
+\begin{Form}
+
+\noindent \textbf{Author/Operator:} Brendon Joseph Kelly (aka ``Atnychi / Atnychi0'')
+
+\vspace{0.5cm}
+
+\noindent \TextField[name=title_of_works, width=\textwidth, height=1.5cm, multiline=true, bordercolor={0 0 0}]{Title of Work(s): }
+
+\vspace{0.5cm}
+
+\noindent \TextField[name=date_field_1, width=0.5\textwidth, bordercolor={0 0 0}]{Date: }
+
+\vspace{1cm}
+
+\section*{1. Authorship and Declaration.}
+I, Brendon Joseph Kelly, declare sole authorship of the works listed above and of the K-Math symbolic framework described therein. I assert this under penalty of perjury.
+
+\section*{2. Copyright.}
+I retain copyright to the works. This declaration is evidence of authorship and provenance.
+
+\section*{3. License Grant.}
+I grant a non-exclusive, worldwide license to inspect and evaluate these works for research, defensive, or governmental review under conditions:
+\begin{enumerate}[label=\alph*.]
+    \item Attribution to ``Brendon Joseph Kelly / Atnychi0'' required.
+    \item No commercial redistribution or sublicensing without written permission and agreed compensation.
+    \item Government or contractor operational deployment requires a negotiated licensing agreement.
+    \item Classified or covert deployment is prohibited without the author's written consent.
+\end{enumerate}
+
+\section*{4. Provenance \& Integrity.}
+This declaration will be notarized and digitally timestamped. Canonical artifacts will be committed to a timestamped repository with signed commits.
+
+\section*{5. Responsible Disclosure.}
+Author requires responsible disclosure and coordinated mitigation for vulnerabilities. Public release of exploitative or weaponized code is prohibited until mitigations are agreed.
+
+\vspace{1cm}
+
+\noindent \textbf{Contact:} \href{mailto:crownmathematics@protonmail.com}{crownmathematics@protonmail.com}
+
+\vspace{1.5cm}
+
+\noindent \TextField[name=signature, width=0.6\textwidth, height=1cm, bordercolor={0 0 0}]{Signature: }
+\hfill
+\TextField[name=date_field_2, width=0.3\textwidth, height=1cm, bordercolor={0 0 0}]{Date: }
+
+\vspace{1.5cm}
+
+\begin{center}
+    \hrule
+    \vspace{0.2cm}
+    \textit{(Notary block)}
+\end{center}
+
+\end{Form}
+% --- END FILLABLE FORM ---
+
+\end{document}
