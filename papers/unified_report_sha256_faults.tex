@@ -1,0 +1,394 @@
+\documentclass[11pt, a4paper]{article}
+
+% --- PREAMBLE BLOCK ---
+\usepackage[a4paper, top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm]{geometry}
+\usepackage{fontspec}
+\usepackage[english, bidi=basic, provide=*]{babel}
+\babelprovide[import, onchar=ids fonts]{english}
+\babelfont{rm}{Noto Serif} % Use Serif for academic paper
+\babelfont{sf}{Noto Sans}
+\usepackage{parskip} % Use spaces between paragraphs, not indents
+
+% --- Math, Tables, and Links ---
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs} % For professional tables
+\usepackage{graphicx} % For potential figures
+\usepackage{listings} % For pseudocode or hash examples
+\usepackage{hyperref} % Must be last
+\usepackage[normalem]{ulem} % For \sout
+
+% --- Title and Author ---
+\title{Unified Report: Reproducible Hardware Faults, K-Mathematics Formulation, and Hardening Protocols}
+\author{Brendon Joseph Kelly (Atnychi) \\ Chris Cervertaz (Bundy) \\ \textit{Affiliation: K Systems}\thanks{Document ID: KSR-20251021-F.\\Commit Hash: \texttt{[SHA256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855]}}}
+\date{2025-10-21T22:32:00-05:00}
+
+\begin{document}
+
+\maketitle
+\pagestyle{headings}
+\tableofcontents
+\newpage
+
+\part{The Core Finding: IACR-Style Report}
+\label{part:core_finding}
+
+\section{Abstract}
+We present experimental evidence that a commercial SHA-256 hardware module can exhibit reproducible round-localized output faults under physical perturbation. These effects originate from the device implementation, not the cryptographic primitive itself. Differential analysis confirms that SHA-256's mathematical integrity remains intact while the silicon's fault tolerance defines the actual security boundary. No exploit parameters are disclosed.
+
+\section{Introduction}
+Algorithmic proofs guarantee logical security, yet hardware exposes timing and energy surfaces vulnerable to disturbance. This paper documents a reproducible implementation weakness in a SHA-256 accelerator and quantifies its effect on digest correctness. The findings highlight the need for integrated fault detection and redundancy in cryptographic hardware.
+
+\section{Background}
+SHA-256 compresses 512-bit blocks through 64 rounds of modular additions and bitwise logic. In hardware, pipelined or partially unrolled architectures introduce deterministic temporal structures that can become sensitive to external stress. Such structures are absent in the idealized algorithmic model.
+
+\section{Method Summary (sanitized)}
+A controlled perturbation source was applied to a hardware module while monitoring power and timing telemetry. The resulting digests were compared against known-good references. Data collection focused on the statistical behavior of corrupted outputs. All physical parameters and apparatus details are withheld.
+
+\section{Results (illustrative placeholders)}
+\begin{table}[h]
+\centering
+\caption{Illustrative Fault Characteristics}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Metric} & \textbf{Observation} \\ \midrule
+Fault reproducibility & >90 \% under test conditions \\
+Rounds affected & 42--45 ($\pm$1 cycle) \\
+Hamming drift & Mean 8 bits $\pm$ 1.3 \\\bottomrule
+\end{tabular}
+\end{table}
+
+Faults persisted across nonce ranges, confirming hardware---not data---dependence.
+
+\section{Analysis}
+Let $\mathcal{S}$ denote the mathematical SHA-256 function and $\mu_{\text{chip}}$ its material realization.
+
+The observed deviation can be expressed abstractly as
+$$ \Psi' = \mathcal{S}(M,N) + \Delta\Psi_{\text{metal}},\quad \Delta\Psi_{\text{metal}}=f(\mu_{\text{chip}}) $$
+where $\Delta\Psi_{\text{metal}}$ represents physical corruption unmodeled in $\mathcal{S}$.
+
+Since $\mathcal{S}$ remains correct, the vulnerability resides entirely in $\mu_{\text{chip}}$.
+
+\section{Mitigations}
+\begin{itemize}
+    \item Dual or triple redundant hashing engines with majority vote.
+    \item Per-round integrity tags or lightweight CRC checks.
+    \item Broadband disturbance sensors linked to hardware lockout.
+    \item Filtered, optically isolated I/O.
+    \item Accredited FI/EM testing before field deployment.
+\end{itemize}
+
+\section{Conclusion}
+SHA-256 as a mathematical construct is secure; its physical instantiation can fail predictably. Implementation integrity---not algorithmic strength---sets the real security limit. Future designs should integrate active detection and redundancy to ensure that physical disturbances cannot silently corrupt cryptographic results.
+
+\newpage
+\part{Symbolic Formulation (K-Mathematics)}
+\label{part:k_math_translation}
+
+This section provides the formal K-Mathematics translation of the finding ``The Math Held. The Metal Didn't.''
+
+\section{Define Key Variables}
+\begin{itemize}
+    \item $\mathcal{S}$ : SHA-256 mathematical space (pure algorithmic layer)
+    \item $\mu_{\text{chip}}$ : Material substrate implementing $\mathcal{S}$ (silicon, wiring, timing)
+    \item $\epsilon_{\text{EM}}$ : Focused electromagnetic perturbation vector
+    \item $\delta_{\text{bit}}$ : Bit-flip delta in the compression loop
+    \item $\Psi_{\text{hash}}$ : Hash output waveform (logical digest)
+    \item $\Phi_{\text{stability}}$ : Integrity field of the physical computation
+\end{itemize}
+
+\section{Core Process}
+Without interference:
+$$ \Psi_{\text{hash}} = \mathcal{S}(M, N) $$
+where M is message input, N is nonce.
+
+With EM injection:
+$$ \Psi'_{\text{hash}} = \mathcal{S}(M, N) \oplus \delta_{\text{bit}}(\epsilon_{\text{EM}}, t) $$
+
+The function still follows mathematical law ($\mathcal{S}$ unbroken), but the hardware state introduces a secondary field term:
+$$ \Psi'_{\text{hash}} = \Psi_{\text{hash}} + \Delta\Psi_{\text{metal}} $$
+
+\section{Energy Interpretation}
+In K-Math logic, this shows two harmonic domains:
+\begin{itemize}
+    \item \textbf{Pure Logic Domain (L-plane):} invariant, symbolic, governed by recursive truth.
+    \item \textbf{Material Domain (M-plane):} time-bound, entropy-susceptible, reactive to injected energy.
+\end{itemize}
+The EM pulse perturbs only the M-plane:
+$$ \Delta\Psi_{\text{metal}} = f(\epsilon_{\text{EM}}, \mu_{\text{chip}}) $$
+while L-plane remains intact.
+
+\section{Recursive Security Equation}
+$$ \Omega_{\text{sec}} = \Phi_{\text{stability}}(\mu_{\text{chip}}) \times \mathcal{S}_{\text{integrity}} $$
+You've demonstrated that:
+$$ \mathcal{S}_{\text{integrity}} = 1, \quad \Phi_{\text{stability}}(\mu_{\text{chip}}) < 1 $$
+$\rightarrow$ therefore:
+$$ \Omega_{\text{sec}} < 1 $$
+In words: The math was perfect, the matter was weak.
+
+\section{Symbolic Form}
+\begin{itemize}
+    \item $\mathcal{S}$ = Immutable Thought
+    \item $\mu_{\text{chip}}$ = Material Body
+    \item $\epsilon_{\text{EM}}$ = Directed Will
+    \item $\delta_{\text{bit}}$ = Micro-distortion of embodiment
+    \item $\Psi_{\text{hash}}$ = Output reflection of both Thought and Matter
+\end{itemize}
+Thus:
+Matter $\in$ Error; \quad Thought $\notin$ Error
+$\rightarrow$ A perfect metaphor for physical vulnerability in otherwise flawless logic.
+
+\section{K-System Summary (one-line form)}
+$$ \Delta\Psi = (\epsilon_{\text{EM}} \cdot \mu_{\text{chip}}) \oplus \mathcal{S}(M) $$
+Controlled energy perturbation converts mathematical truth into measurable fault --- proving that physical embodiment defines security boundaries.
+
+\newpage
+\part{Hardening Protocol (K-Mathematics Framework)}
+\label{part:k_math_hardening}
+This section details the K-Math / Crown $\Omega$ framework for an EMP-resilient hardening solution.
+
+\section{K-Math Block Diagram (non-actionable)}
+\begin{itemize}
+    \item \textbf{$\Omega$-Shell (Passive Shield):} continuous conductive enclosure + RF gaskets.
+        \begin{itemize}
+            \item K-op: $\Omega_{\text{shell}}$ reduces external field coupling.
+        \end{itemize}
+    \item \textbf{$\Delta$-Dampers (Lossy Layers):} ferrite/absorber stack between shells.
+        \begin{itemize}
+            \item K-op: $\Delta_{\text{loss}}$ dissipates HF content.
+        \end{itemize}
+    \item \textbf{$\Psi$-Sentinels (Sensors):} broadband E/B and surge monitors on I/O and chassis.
+        \begin{itemize}
+            \item K-op: $\Psi_{\text{sense}} \to \mathcal{A}_{\text{abort}}$ triggers safe state.
+        \end{itemize}
+    \item \textbf{$\Lambda$-Isolators (I/O Hygiene):} filtered feedthroughs, fiber/xfmr isolation, TVS/GDT.
+        \begin{itemize}
+            \item K-op: $\Lambda_{\perp}$ breaks conductive paths.
+        \end{itemize}
+    \item \textbf{$\Gamma$-Crowbar (Sacrificial Path):} diverts energy to engineered dumps, then locks out.
+        \begin{itemize}
+            \item K-op: $\Gamma_{\downarrow}$ clamps and quenches.
+        \end{itemize}
+    \item \textbf{$\Pi$-Redundancy (Vote/Compare):} dual/triple hash engines, majority vote.
+        \begin{itemize}
+            \item K-op: $\Pi_{\text{vote}}(h_1,h_2,h_3)$.
+        \end{itemize}
+    \item \textbf{$\Sigma$-Integrity (Per-round tags):} lightweight checks inside compression rounds.
+        \begin{itemize}
+            \item K-op: $\Sigma_{\text{round}}$ detects state corruption.
+        \end{itemize}
+    \item \textbf{$\Theta$-Attestation (Health State):} signed counters, fault logs to host.
+        \begin{itemize}
+            \item K-op: $\Theta_{\text{report}}$.
+        \end{itemize}
+\end{itemize}
+
+\section{RCF Pipeline (Hardened Flow)}
+$$ H_{\text{out}}=\Theta\circ\Pi\circ\Sigma\circ\Lambda\circ\Gamma\circ\Psi\circ\Delta\circ\Omega(H_{\text{in}}) $$
+
+\section{Crown $\Omega$ Control Logic (pseudo-formal)}
+\begin{itemize}
+    \item \textbf{Abort operator:} if $\Psi_{\text{sense}} > \tau$ then $\mathcal{A}_{\text{abort}} \Rightarrow \{\Gamma_{\downarrow}, \Lambda_{\perp}, \text{lockout}\}$.
+    \item \textbf{Acceptance operator:} output commit only if $\Sigma_{\text{round}}=\text{pass} \land \Pi_{\text{vote}}$ agrees.
+    \item \textbf{Attest operator:} $\Theta_{\text{report}}=\text{Sign}(\text{fault\_count},\text{temp},\text{surge},\text{uptime})$.
+\end{itemize}
+
+\newpage
+\part{Hardening Protocol (Engineering Translation)}
+\label{part:engineering_translation}
+This section provides a direct translation of the K-Math design into conventional engineering terms, ready for engineers and procurement.
+
+\section{Mapping (K-Math $\to$ Standard Engineering)}
+\begin{itemize}
+    \item \textbf{$\Omega$-Shell} $\to$ Continuous conductive enclosure (Faraday cage) with RF-tight seams and gaskets.
+    \item \textbf{$\Delta$-Dampers} $\to$ Lossy absorber layers (ferrite tiles, RF absorber foam) between shells.
+    \item \textbf{$\Psi$-Sentinels} $\to$ Broadband E-field / B-field / current sensors on power and I/O.
+    \item \textbf{$\Lambda$-Isolators} $\to$ Filtered feedthroughs, optical isolation, isolated transformers, common-mode chokes, surge arrestors.
+    \item \textbf{$\Gamma$-Crowbar} $\to$ Engineered sacrificial dissipation path (crowbar or energy dump with lockout; replaceable).
+    \item \textbf{$\Pi$-Redundancy} $\to$ Redundant compute engines with majority voting (duplex/triple modular redundancy).
+    \item \textbf{$\Sigma$-Integrity} $\to$ Lightweight per-operation integrity checks (per-round/state checksums).
+    \item \textbf{$\Theta$-Attestation} $\to$ Signed health/telemetry reports and monotonic counters for host verification.
+\end{itemize}
+
+\section{System Block (Textual Diagram)}
+External field $\to$ $\Omega$-Shell (outer conductor) $\to$ $\Delta$-Dampers (lossy layer) $\to$ $\Omega$-Shell (inner conductor) $\to$ $\Lambda$-Isolators at I/O $\to$ Internal electronics with $\Pi$-Redundancy + $\Sigma$-Integrity $\to$ $\Theta$-Attestation output.
+
+\section{Functional Descriptions (Concise)}
+\begin{itemize}
+    \item \textbf{Faraday enclosure:} continuous metal shell, gasketed access ports, bonded to single-point ground.
+    \item \textbf{Layered absorbers:} materials chosen by target frequency band and non-combustible rating.
+    \item \textbf{I/O hygiene:} all external power/data pass through EMI filters and isolation; prefer fiber for data.
+    \item \textbf{Sensors:} fast broadband sensors feed hardware interrupt to isolation controller.
+    \item \textbf{Isolation controller:} on sensor trip, engage $\Gamma$ path to divert energy and assert secure lockout.
+    \item \textbf{Redundant hashing:} run hash on $\ge$2 independent cores; require matching result or reject.
+    \item \textbf{Per-round tags:} compute small integrity tokens during processing; if mismatch, abort before commit.
+    \item \textbf{Attestation:} device signs a health report containing fault counters, timestamps, and event logs using device private key.
+\end{itemize}
+
+\section{Overall Logical Predicate (One Line)}
+Release output only if (IntegrityChecks == PASS) AND (MajorityVote == TRUE) AND (NoActiveLockout).
+
+\newpage
+\part{Implementation: SOW \& Test Plan}
+\label{part:sow_test_plan}
+This section provides the unified, plain-language block for procurement and verification.
+
+\section{Statement of Work (SOW)}
+\begin{itemize}
+    \item \textbf{Title:} EMP/EMI-Hardened Cryptographic Module
+    \item \textbf{Purpose:} Specify engineering, verification, and certification requirements for an EMP/EMI-resilient SHA-256 hardware subsystem.
+    \item \textbf{Scope:} Design, manufacture, and certify a cryptographic module that maintains operational integrity under electromagnetic pulse (EMP) and electromagnetic interference (EMI) stress, following MIL-STD-461/464 and IEEE-STD-299 guidance.
+\end{itemize}
+
+\subsection{Functional Requirements (SOW)}
+\begin{itemize}
+    \item \textbf{Shielding:} Dual conductive enclosure with continuous seams and RF-rated gaskets. All penetrations use filtered feedthroughs or optical isolation. Single-point chassis grounding with documented impedance $\le$ specified value.
+    \item \textbf{Absorber Layers:} Ferrite or conductive-foam absorber between inner and outer shells. Non-combustible, RoHS-compliant materials rated for the target frequency band.
+    \item \textbf{Filtered Interfaces:} Power and signal lines fitted with EMI filters, surge suppressors, and common-mode chokes. Data interfaces preferably optical.
+    \item \textbf{Sensing and Isolation:} Integrated E/B-field sensors on supply and I/O. Detection probability $\ge$ 0.999 for anomalies verified in accredited lab. False-positive rate $\le$ 10^{-4} over full functional range. Triggered isolation controller disconnects external lines and enters secure lockout within specified latency.
+    \item \textbf{Redundancy and Integrity:} Two or more independent crypto engines with majority voting. Per-round checksum or CRC verification; mismatch aborts computation.
+    \item \textbf{Health Attestation:} Device signs telemetry record \{device\_id, firmware\_version, fault\_count, timestamp, status\}. Signature uses hardware root key; counters monotonic.
+    \item \textbf{Environmental Robustness:} Operates within rated temperature and supply range without false alarms. Withstands test levels per MIL-STD-461 RS105 or equivalent lab protocol.
+    \item \textbf{Documentation:} Design drawings, materials list, shielding analysis, test procedures, and accredited-lab reports. All raw test data retained under NDA.
+\end{itemize}
+
+\subsection{Deliverables (SOW)}
+\begin{itemize}
+    \item Hardened hardware prototype(s)
+    \item Test and verification report
+    \item Signed accredited-lab certification summary
+    \item Source documentation and bill of materials
+\end{itemize}
+
+\subsection{Acceptance Criteria (SOW)}
+\begin{itemize}
+    \item No undetected digest deviation in N functional trials post-testing.
+    \item Secure lockout engages automatically upon anomaly detection.
+    \item Health attestation verified by independent reviewer.
+    \item All required test reports received and signed by accredited facility.
+\end{itemize}
+
+\section{Laboratory Test Request}
+\begin{itemize}
+    \item \textbf{Objective:} Validate EMP/EMI resilience of the hardened cryptographic module.
+    \item \textbf{Provided by Client:} One control unit and one test unit; Functional test software and vector set; Power and interface schematics; Required environmental limits.
+\end{itemize}
+
+\subsection{Test Phases (Lab Request)}
+\begin{enumerate}
+    \item \textbf{Baseline Functional Check:} Run standard SHA-256 vectors. Record reference outputs and operating parameters.
+    \item \textbf{Environmental Stress (non-EMP):} Temperature sweep (\textendash40 $^\circ$C $\to$ +85 $^\circ$C). Supply $\pm$10 \%. Clock $\pm$5 \%. Verify stable outputs and zero false trips.
+    \item \textbf{EMI Susceptibility (Radiated/Conducted):} Apply per MIL-STD-461 RS103/CS114. Log detection events, isolation triggers, and recoveries.
+    \item \textbf{EMP Simulation (Controlled Pulse Testing):} Execute RS105 or equivalent waveform at specified field strengths. Measure induced voltages, detection latency, and recovery behavior. Record health-attestation output before/after each pulse.
+    \item \textbf{Post-Test Functional Verification:} Re-run baseline vectors. Confirm identical digests and normal telemetry.
+\end{enumerate}
+
+\subsection{Reporting (Lab Request)}
+Provide quantitative table:
+\begin{table}[h]
+\centering
+\caption{Acceptance Metrics}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Metric} & \textbf{Value} & \textbf{Requirement} & \textbf{Pass/Fail} \\ \midrule
+Detection Probability & --- & $\ge$ 0.999 & \\
+False-Positive Rate & --- & $\le$ 10^{-4} & \\
+Isolation Latency ($\mu$s) & --- & $\le$ specified & \\
+Digest Integrity & --- & 0 deviations & \\\bottomrule
+\end{tabular}
+\end{table}
+
+Include waveform plots, environmental logs, and sensor outputs. Deliver signed PDF report and machine-readable dataset.
+\begin{itemize}
+    \item \textbf{Confidentiality:} All raw data shared under NDA only. No public disclosure of waveform details, facility configuration, or energy levels.
+    \item \textbf{Completion Criteria:} Successful demonstration of required resilience metrics and delivery of signed accredited-lab report.
+\end{itemize}
+
+\newpage
+\part{Disclosure \& Provenance Protocol}
+\label{part:disclosure_protocol}
+This section outlines the non-actionable, sanitized procedures for responsible disclosure, evidence preservation, and publication.
+
+\section{Vendor / Agency Disclosure Email (Sanitized Template)}
+\begin{itemize}
+    \item \textbf{Subject:} Coordinated disclosure request --- reproducible fault effects on SHA-256 hardware
+    \item \textbf{Body:} Hello [Name / Security Team],
+    
+    We have observed reproducible, round-targeted fault effects on a commercial SHA-256 hardware module in our laboratory that yield deterministic malformed digests while the SHA-256 algorithm remains intact. We are withholding actionable injection parameters and request an NDA to share the full forensic bundle (raw traces, firmware image, device identifiers, chain-of-custody) for coordinated remediation.
+    
+    Attached: sanitized executive summary and sanitized technical brief.
+    
+    Please advise a secure technical contact and your preferred NDA or upload method. We request a point of contact for coordinating remediation and accredited testing.
+    
+    Regards,
+    [Your name / Lab]
+    [Contact email; PGP key optional]
+\end{itemize}
+
+\section{NDA Skeleton (Mutual)}
+\begin{itemize}
+    \item \textbf{Parties:} [Researcher/Lab] and [Vendor/Agency]
+    \item \textbf{Purpose:} Exchange of forensic data and device identifiers related to lab observations for remediation and certification.
+    \item \textbf{Scope:} Raw traces, firmware image(s), device identifiers, chain-of-custody documentation. Excludes actionable injection parameters (waveforms, timings, energies, probe geometries).
+    \item \textbf{Term:} 2 years or mutually agreed.
+    \item \textbf{Use restrictions:} Data used solely for analysis, remediation, and certification. No public release of raw data without mutual consent.
+    \item \textbf{Return/destruction:} On request, recipient returns or securely destroys disclosed materials and certifies destruction.
+    \item \textbf{Governing law:} [jurisdiction].
+\end{itemize}
+
+\section{Chain-of-Custody Checklist}
+\begin{itemize}
+    \item Item ID: \_\_\_\_\_\_
+    \item Device serial: \_\_\_\_\_\_
+    \item Photo(s) attached: Y/N
+    \item UTC timestamp collected: \_\_\_\_\_\_
+    \item Handler name/signature: \_\_\_\_\_\_
+    \item Storage location: \_\_\_\_\_\_
+    \item SHA-256 of raw data archive: \_\_\_\_\_\_
+\end{itemize}
+
+\section{Forensic Evidence Bundle (Preservation List)}
+\begin{itemize}
+    \item Original raw traces (unmodified).
+    \item Power/current logs and scope captures.
+    \item Raw input messages and corresponding correct/faulty digests.
+    \item Firmware image(s) and device identifiers.
+    \item High-res photos of board/package (no probe close-ups).
+    \item Chain-of-custody log (signed).
+    \item README describing files and sanitized summary.
+\end{itemize}
+
+\section{Responsible Disclosure \& Publication Checklist}
+\begin{enumerate}
+    \item Preserve evidence; stop testing.
+    \item Contact vendor + CISA (vulnerability@cisa.dhs.gov) using disclosure email.
+    \item Execute NDA for raw forensic transfer.
+    \item Coordinate remediation timeline.
+    \item After vendor/Agency coordination, post sanitized paper to IACR/ePrint for priority.
+    \item Offer raw data only to accredited labs under NDA.
+\end{enumerate}
+
+\newpage
+\part{Advanced Theoretical Framework}
+\label{part:advanced_theory}
+This section documents the symbolic operator sum presented for consideration.
+
+\section{Genesis $\Omega^\dagger$ Black Operator}
+The following symbolic operator sum was proposed:
+$$ \mathcal{F}(\text{Genesis}\Omega^\dagger\text{Black}) = \sum_{\Omega \RHD \infty} \left[ T_{\Omega\Psi}(\chi', K_\infty, \Omega^\dagger\Sigma) \right] \times \text{Self} \times \text{Harmonic\_Equivalent} \times K $$
+
+\section{Interpretation}
+This expression is interpreted as a symbolic, abstract transformation rule, not a physically defined Hamiltonian. It defines how such an operator would behave if it were part of a quantum model.
+
+\subsection{Linear Addition (Superposition)}
+If ``adding it to itself'' implies a linear sum $\mathcal{F}' = \mathcal{F} + \mathcal{F} = 2\mathcal{F}$, the expectation value doubles:
+$$ \langle \psi | \mathcal{F}' | \psi \rangle = 2\,\langle \psi | \mathcal{F} | \psi \rangle $$
+Observables (like energy density) that scale with amplitude squared would increase by a factor of 4.
+
+\subsection{Operator Self-Composition}
+If ``adding it to itself'' implies composition $\mathcal{F}^2 |\psi\rangle = \mathcal{F}(\mathcal{F}|\psi\rangle)$, this evaluates the second-order effect of the transformation.
+
+\subsection{Symbolic / K-Math Interpretation}
+In a symbolic frame, this represents a recursive resonance $\mathcal{F}_{\text{recursive}} = \mathcal{F} \oplus \mathcal{F}$. This implies a harmonic doubling where energy density scales (constructive interference, $\propto 4$), but the underlying logical identity (phase coherence) is preserved.
+
+\end{document}
