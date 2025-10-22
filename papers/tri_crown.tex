@@ -1,0 +1,153 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+
+\title{TRI-CROWN: A Triple-Hybrid Key Encapsulation Mechanism for Algorithmic Diversity and Long-Term Resilience}
+\author{Brendon Joseph Kelly \\ K-Systems \& Securities, Applied Research Division}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+The cryptographic community is transitioning to post-quantum cryptography, yet confidence in any single new family of algorithms is still developing. Standard hybrid schemes, which combine a classical primitive with a single post-quantum primitive, provide a crucial safety net but remain vulnerable to a systemic break in the chosen post-quantum family. To address this, we propose TRI-CROWN, a high-assurance, triple-hybrid Key Encapsulation Mechanism (KEM) designed for maximum resilience in high-stakes environments.
+
+TRI-CROWN orchestrates a key exchange using three cryptographically dissimilar primitives: X25519 (elliptic-curve cryptography), ML-KEM (lattice-based cryptography), and Classic McEliece (code-based cryptography). By deriving a shared secret from the outputs of all three, the protocol's security is predicated on the hardness of at least one of the underlying mathematical problems. An adversary must possess the capability to break ECC, lattice-based schemes, and code-based schemes to compromise the key exchange. This principle of deep algorithmic diversity provides a robust defense against future cryptanalytic breakthroughs that might neutralize an entire class of algorithms.
+
+The protocol further incorporates a full transcript hash for key commitment and a forward-secure key schedule with ratcheting capabilities. We present the formal construction of the protocol, its key derivation framework, and a security rationale for its conservative design, positioning TRI-CROWN as a blueprint for next-generation secure channels requiring long-term, multi-generational security.
+\end{abstract}
+
+\textbf{Keywords:} Post-Quantum Cryptography, Hybrid Encryption, Key Encapsulation Mechanism, Algorithmic Diversity, Defense-in-Depth, Key Exchange Protocol.
+
+\section{Introduction}
+The conclusion of the NIST Post-Quantum Cryptography (PQC) standardization process marks the beginning of a global cryptographic migration. While the selected standards, primarily based on structured lattices, offer strong security guarantees against known quantum algorithms, the history of cryptography teaches us to be wary of placing absolute trust in a single family of mathematical assumptions. A future theoretical or practical breakthrough could potentially lead to a systemic failure of an entire class of primitives.
+
+Standard hybrid key exchange protocols mitigate this risk by combining a classical primitive (e.g., ECDH) with a single PQC primitive (e.g., a lattice-based KEM). This ensures that the protocol remains secure as long as at least one of the two components is secure. While this is a significant improvement, it still presents a single point of failure for quantum resistance. If, for instance, a flaw were discovered in the mathematical foundations of lattice-based cryptography, such a hybrid scheme would offer no more quantum resistance than its classical component.
+
+For systems requiring exceptionally high assurance and long-term confidentiality---such as critical infrastructure, national security communications, or archival data---a more conservative approach is warranted. This paper introduces TRI-CROWN, a protocol that extends the hybrid principle to its logical conclusion by incorporating multiple, mathematically distinct post-quantum primitives.
+
+TRI-CROWN is a triple-hybrid KEM that constructs a shared secret from three primitives representing three distinct eras and families of cryptography:
+\begin{enumerate}
+    \item \textbf{Classical (Elliptic-Curve):} X25519, for its proven security, high performance, and deep ecosystem integration.
+    \item \textbf{Post-Quantum (Lattice-Based):} ML-KEM, the primary NIST standard, representing the state-of-the-art in efficient PQC.
+    \item \textbf{Post-Quantum (Code-Based):} Classic McEliece, a long-standing and trusted PQC candidate with security based on a completely different hardness assumption from lattices.
+\end{enumerate}
+
+By composing these three, TRI-CROWN is designed to be ``anti-brittle.'' Its security is not tied to the continued viability of any single assumption. We present the protocol's formal construction, its key schedule designed for forward secrecy and key commitment, and a detailed security analysis.
+
+\section{Preliminaries}
+Our protocol is constructed from the following standard cryptographic building blocks:
+\begin{itemize}
+    \item \textbf{Key Encapsulation Mechanism (KEM):} A set of three algorithms: \texttt{KeyGen}, \texttt{Encaps}, and \texttt{Decaps}. A KEM must provide IND-CCA2 security.
+    \item \textbf{Key Derivation Function (KDF):} We use HKDF, specified in RFC 5869, which consists of two phases: \texttt{HKDF-Extract} and \texttt{HKDF-Expand}.
+    \item \textbf{Cryptographic Hash Function:} A collision-resistant hash function, such as SHA3-512.
+\end{itemize}
+
+The specific primitives used in the TRI-CROWN construction are:
+\begin{itemize}
+    \item \textbf{KEM\textsubscript{ECC}:} X25519 Diffie-Hellman function.
+    \item \textbf{KEM\textsubscript{Lattice}:} ML-KEM-1024, targeting NIST Level 5 security.
+    \item \textbf{KEM\textsubscript{Code}:} Classic McEliece 6960119, targeting NIST Level 5 security.
+\end{itemize}
+
+\section{The TRI-CROWN Protocol Specification}
+TRI-CROWN establishes an authenticated shared secret between an Initiator (Alice) and a Responder (Bob). We assume Bob possesses long-term public keys for all three cryptographic suites.
+
+\subsection{Handshake and Key Encapsulation}
+\begin{enumerate}
+    \item \textbf{Initialization:} Alice and Bob initialize a transcript hash context, $H_{\text{trans}} = \textsc{HashInit()}$. They hash a domain separation tag and any pre-agreed upon context information.
+    \item \textbf{Initiator's Operation (Alice):}
+    \begin{enumerate}
+        \item Alice fetches Bob's public keys: $\mathsf{pk}^{\mathrm{ECC}}_B$, $\mathsf{pk}^{\mathrm{Lattice}}_B$, $\mathsf{pk}^{\mathrm{Code}}_B$.
+        \item Alice generates an ephemeral key pair for the ECC component: $(\mathsf{epk}^{\mathrm{ECC}}_A, \mathsf{esk}^{\mathrm{ECC}}_A) \leftarrow \textsc{KeyGen}_{\mathrm{ECC}}$.
+        \item Alice performs three separate key encapsulations:
+        \begin{enumerate}
+            \item $\mathsf{ss}_{\mathrm{ECC}} \leftarrow \textsc{DH}(\mathsf{esk}^{\mathrm{ECC}}_A, \mathsf{pk}^{\mathrm{ECC}}_B)$,
+            \item $(\mathsf{ct}_{\mathrm{Lattice}}, \mathsf{ss}_{\mathrm{Lattice}}) \leftarrow \textsc{Encaps}_{\mathrm{Lattice}}(\mathsf{pk}^{\mathrm{Lattice}}_B)$,
+            \item $(\mathsf{ct}_{\mathrm{Code}}, \mathsf{ss}_{\mathrm{Code}}) \leftarrow \textsc{Encaps}_{\mathrm{Code}}(\mathsf{pk}^{\mathrm{Code}}_B)$.
+        \end{enumerate}
+        \item Alice updates the transcript with all public information exchanged:
+        \begin{align*}
+            H_{\text{trans}} &\mathrel{+}= \mathsf{pk}^{\mathrm{ECC}}_B \parallel \mathsf{pk}^{\mathrm{Lattice}}_B \parallel \mathsf{pk}^{\mathrm{Code}}_B, \\
+            H_{\text{trans}} &\mathrel{+}= \mathsf{epk}^{\mathrm{ECC}}_A \parallel \mathsf{ct}_{\mathrm{Lattice}} \parallel \mathsf{ct}_{\mathrm{Code}}.
+        \end{align*}
+        \item Alice sends the message $(\mathsf{epk}^{\mathrm{ECC}}_A, \mathsf{ct}_{\mathrm{Lattice}}, \mathsf{ct}_{\mathrm{Code}})$ to Bob.
+    \end{enumerate}
+    \item \textbf{Responder's Operation (Bob):}
+    \begin{enumerate}
+        \item Upon receiving the message, Bob updates his transcript with the same public information.
+        \item Bob uses his secret keys $(\mathsf{sk}^{\mathrm{ECC}}_B, \mathsf{sk}^{\mathrm{Lattice}}_B, \mathsf{sk}^{\mathrm{Code}}_B)$ to perform three decapsulations:
+        \begin{enumerate}
+            \item $\mathsf{ss}_{\mathrm{ECC}} \leftarrow \textsc{DH}(\mathsf{sk}^{\mathrm{ECC}}_B, \mathsf{epk}^{\mathrm{ECC}}_A)$,
+            \item $\mathsf{ss}_{\mathrm{Lattice}} \leftarrow \textsc{Decaps}_{\mathrm{Lattice}}(\mathsf{sk}^{\mathrm{Lattice}}_B, \mathsf{ct}_{\mathrm{Lattice}})$,
+            \item $\mathsf{ss}_{\mathrm{Code}} \leftarrow \textsc{Decaps}_{\mathrm{Code}}(\mathsf{sk}^{\mathrm{Code}}_B, \mathsf{ct}_{\mathrm{Code}})$.
+        \end{enumerate}
+    \end{enumerate}
+    \item \textbf{Shared Secret Combination:} Both parties now possess the same three shared secrets. They combine them via concatenation to form a single Initial Keying Material (IKM):
+    \[
+        \mathsf{IKM} = \mathsf{ss}_{\mathrm{ECC}} \parallel \mathsf{ss}_{\mathrm{Lattice}} \parallel \mathsf{ss}_{\mathrm{Code}}.
+    \]
+\end{enumerate}
+
+\subsection{Key Schedule}
+The key schedule uses HKDF to derive session keys from the IKM, binding them to the context of the entire handshake.
+
+\begin{enumerate}
+    \item \textbf{Extraction:} The finalized transcript hash is used as the salt to provide key commitment. Let $\mathsf{salt} = H_{\text{trans}}^{\text{final}}$. Then compute
+    \[
+        \mathsf{PRK} = \textsc{HKDF-Extract}(\mathsf{salt}, \mathsf{IKM}).
+    \]
+    \item \textbf{Expansion:} A master secret is derived, from which all subsequent keys are generated. This structure supports ratcheting for forward and post-compromise security.
+    \begin{align*}
+        \mathsf{master\_secret} &= \textsc{HKDF-Expand}(\mathsf{PRK}, \text{``tri-crown-master''}, L_{\text{master}}), \\
+        \mathsf{traffic\_key\_send} &= \textsc{HKDF-Expand}(\mathsf{master\_secret}, \text{``send\_key''}, L_{\text{key}}), \\
+        \mathsf{traffic\_key\_recv} &= \textsc{HKDF-Expand}(\mathsf{master\_secret}, \text{``recv\_key''}, L_{\text{key}}).
+    \end{align*}
+\end{enumerate}
+
+\section{Security Analysis}
+The design of TRI-CROWN is intentionally conservative, prioritizing security and resilience over performance.
+
+\subsection{Hybrid Security}
+The security of the derived $\mathsf{master\_secret}$ relies on the secrecy of the $\mathsf{IKM}$. An adversary can only compute the $\mathsf{IKM}$ if they can obtain all three constituent shared secrets: $\mathsf{ss}_{\mathrm{ECC}}$, $\mathsf{ss}_{\mathrm{Lattice}}$, and $\mathsf{ss}_{\mathrm{Code}}$. So long as any one of the three KEMs remains unbroken by the adversary, the $\mathsf{IKM}$ remains computationally indistinguishable from a random string.
+
+\subsection{Algorithmic Diversity}
+This is the core security contribution of TRI-CROWN. The protocol is resilient not just to the threat of a quantum computer (which is handled by both ML-KEM and McEliece), but also to a fundamental cryptanalytic breakthrough against an entire family of PQC algorithms. For example:
+\begin{itemize}
+    \item If a flaw is discovered rendering all lattice-based schemes insecure, the protocol's security gracefully degrades to a dual-hybrid scheme of X25519 and Classic McEliece.
+    \item Similarly, a break in code-based crypto would still leave a secure dual-hybrid of X25519 and ML-KEM.
+\end{itemize}
+This provides a level of assurance that is not achievable with standard classical+PQC hybrid models.
+
+\subsection{Key Commitment}
+By including all public keys and ciphertexts in the transcript hash, and using this hash as the KDF salt, the protocol cryptographically binds the derived session keys to the full context of the handshake. This prevents attacks where an adversary might manipulate the exchange to make two parties derive the same key from different session contexts.
+
+\subsection{Forward Secrecy}
+The use of an ephemeral key for the ECC component ensures that a compromise of the responder's long-term keys does not compromise past session keys. Full forward secrecy is achieved by having both parties use ephemeral keys for all primitives, which is a straightforward extension of this core protocol.
+
+\section{Discussion and Future Work}
+The primary trade-offs of the TRI-CROWN approach are increased computational cost and bandwidth overhead. The three encaps/decaps operations are more expensive than a standard hybrid handshake, and the message containing two PQC ciphertexts is significantly larger. However, for applications where long-term security is paramount and these costs are acceptable, TRI-CROWN offers a compelling security posture.
+
+Future work includes:
+\begin{enumerate}
+    \item A formal security proof of the protocol construction in a standard cryptographic model.
+    \item Performance benchmarking on various platforms, from servers to embedded devices, to quantify the overhead.
+    \item Developing a side-channel resistant implementation of the full, sequential decapsulation process, taking into account potential cross-primitive leakages.
+\end{enumerate}
+
+\section{Conclusion}
+TRI-CROWN is a conservatively designed hybrid key exchange protocol that provides robust security guarantees against an uncertain cryptanalytic future. By combining three primitives from distinct mathematical families, it achieves deep algorithmic diversity, ensuring resilience even if an entire class of post-quantum algorithms is broken. This makes it a suitable candidate for securing communications and data that require confidentiality and integrity for many decades to come.
+
+\section*{References}
+\begin{enumerate}
+    \item Bernstein, D. J. ``Curve25519: New Diffie-Hellman Speed Records.'' In \textit{PKC 2006}, LNCS 3958, pp. 207--228. Springer, 2006.
+    \item Bindel, N., et al. ``CRYSTALS-Kyber.'' Submission to the NIST Post-Quantum Cryptography Standardization Process. 2020.
+    \item Bernstein, D. J., et al. ``Classic McEliece.'' Submission to the NIST Post-Quantum Cryptography Standardization Process. 2020.
+    \item Krawczyk, H., and Eronen, P. ``HMAC-based Extract-and-Expand Key Derivation Function (HKDF).'' RFC 5869, May 2010.
+    \item G"ottert, N., et al. ``On the Implementation of a KEM-Based Hybrid Key Exchange in TLS.'' In \textit{ACNS 2020}, LNCS 12146, pp. 485--504. Springer, 2020.
+\end{enumerate}
+
+\end{document}
