@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import base64
 import hashlib
-import hmac
+import hmac as stdlib_hmac
 import os
 import secrets
 from contextlib import suppress
@@ -33,16 +33,13 @@ try:  # pragma: no cover - optional dependency
     from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305 as _RealChaCha20Poly1305
 except Exception:  # pragma: no cover - fallback implementation used
     _RealChaCha20Poly1305 = None
-from contextlib import suppress
-from dataclasses import dataclass
-from secrets import compare_digest
-from typing import Dict, Optional
 
-from cryptography.hazmat.primitives import hashes, hmac
-from cryptography.hazmat.primitives.asymmetric import x25519
-from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
-from cryptography.hazmat.primitives.kdf.hkdf import HKDF
-from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+from cryptography.hazmat.primitives import hashes
+
+try:  # pragma: no cover - optional dependency
+    from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+except Exception:  # pragma: no cover - fallback when cryptography is limited
+    HKDF = None  # type: ignore[assignment]
 
 try:  # pragma: no cover - exercised depending on environment
     import oqs
@@ -71,7 +68,7 @@ class _ChaCha20Poly1305:
             return self._impl.encrypt(nonce, data, aad)
         keystream = _hkdf(self._key + nonce, length=len(data), info=b"tricrown-hybrid-aead")
         ciphertext = bytes(a ^ b for a, b in zip(data, keystream))
-        tag = hmac.new(self._key, nonce + aad + ciphertext, hashlib.sha256).digest()
+        tag = stdlib_hmac.new(self._key, nonce + aad + ciphertext, hashlib.sha256).digest()
         return ciphertext + tag
 
     def decrypt(self, nonce: bytes, data: bytes, aad: bytes) -> bytes:
@@ -80,7 +77,7 @@ class _ChaCha20Poly1305:
         if len(data) < _TAG_LEN:
             raise ValueError("ciphertext too short")
         ciphertext, tag = data[:-_TAG_LEN], data[-_TAG_LEN:]
-        expected = hmac.new(self._key, nonce + aad + ciphertext, hashlib.sha256).digest()
+        expected = stdlib_hmac.new(self._key, nonce + aad + ciphertext, hashlib.sha256).digest()
         if not secrets.compare_digest(expected, tag):
             raise ValueError("authentication failed")
         keystream = _hkdf(self._key + nonce, length=len(ciphertext), info=b"tricrown-hybrid-aead")
@@ -90,15 +87,22 @@ class _ChaCha20Poly1305:
 def _hkdf(ikm: bytes, *, length: int, info: bytes, salt: bytes | None = None) -> bytes:
     if salt is None:
         salt = b"\x00" * hashlib.sha256().digest_size
-    prk = hmac.new(salt, ikm, hashlib.sha256).digest()
+    prk = stdlib_hmac.new(salt, ikm, hashlib.sha256).digest()
     okm = b""
     previous = b""
     counter = 1
     while len(okm) < length:
-        previous = hmac.new(prk, previous + info + bytes([counter]), hashlib.sha256).digest()
+        previous = stdlib_hmac.new(prk, previous + info + bytes([counter]), hashlib.sha256).digest()
         okm += previous
         counter += 1
     return okm[:length]
+
+
+def _derive_key_material(ikm: bytes, *, length: int, info: bytes) -> bytes:
+    if HKDF is not None:  # pragma: no cover - exercised when cryptography is available
+        hkdf = HKDF(algorithm=hashes.SHA256(), length=length, salt=None, info=info)
+        return hkdf.derive(ikm)
+    return _hkdf(ikm, length=length, info=info)
 
 
 if x25519 is None:  # pragma: no cover - exercised when cryptography is missing
@@ -301,7 +305,6 @@ def server_finish(ctx: TriCrownContext, message: Dict[str, str]) -> None:
     expected = _finalise_session(ctx, pq_secret)
     provided = _b64d(message["verify"])
     if not secrets.compare_digest(expected, provided):
-    if not compare_digest(expected, provided):
         raise ValueError("handshake verification failed")
 
 
@@ -311,9 +314,7 @@ def _finalise_session(ctx: TriCrownContext, pq_secret: bytes) -> bytes:
         raise RuntimeError("handshake missing DH shared secret")
 
     secret_material = handshake.dh_shared_secret + pq_secret
-    okm = _hkdf(secret_material, length=96, info=b"tricrown-hybrid-session")
-    hkdf = HKDF(algorithm=hashes.SHA256(), length=96, salt=None, info=b"tricrown-hybrid-session")
-    okm = hkdf.derive(secret_material)
+    okm = _derive_key_material(secret_material, length=96, info=b"tricrown-hybrid-session")
     client_send, server_send, root_key = okm[:32], okm[32:64], okm[64:]
 
     transcript = handshake.transcript()
@@ -337,16 +338,12 @@ def _finalise_session(ctx: TriCrownContext, pq_secret: bytes) -> bytes:
 
 
 def _hmac(key: bytes, data: bytes) -> bytes:
-    return hmac.new(key, data, hashlib.sha256).digest()
-    h = hmac.HMAC(key, hashes.SHA256())
-    h.update(data)
-    return h.finalize()
+    return stdlib_hmac.new(key, data, hashlib.sha256).digest()
 
 
 def seal(ctx: TriCrownContext, aad: bytes, plaintext: bytes) -> Dict[str, bytes]:
     session = ctx.require_session()
     cipher = _ChaCha20Poly1305(session.send.key)
-    cipher = ChaCha20Poly1305(session.send.key)
     nonce = session.send.next_nonce()
     ciphertext = cipher.encrypt(nonce, plaintext, aad)
     return {"aad": aad, "nonce": nonce, "ct": ciphertext}
@@ -355,7 +352,6 @@ def seal(ctx: TriCrownContext, aad: bytes, plaintext: bytes) -> Dict[str, bytes]
 def open_(ctx: TriCrownContext, record: Dict[str, bytes]) -> bytes:
     session = ctx.require_session()
     cipher = _ChaCha20Poly1305(session.recv.key)
-    cipher = ChaCha20Poly1305(session.recv.key)
     nonce = record["nonce"]
     aad = record.get("aad", b"")
     ciphertext = record["ct"]
@@ -364,9 +360,7 @@ def open_(ctx: TriCrownContext, record: Dict[str, bytes]) -> bytes:
 
 def rekey(ctx: TriCrownContext) -> None:
     session = ctx.require_session()
-    material = _hkdf(session.rk, length=96, info=b"tricrown-rekey")
-    hkdf = HKDF(algorithm=hashes.SHA256(), length=96, salt=None, info=b"tricrown-rekey")
-    material = hkdf.derive(session.rk)
+    material = _derive_key_material(session.rk, length=96, info=b"tricrown-rekey")
     client_send, server_send, new_root = material[:32], material[32:64], material[64:]
 
     if ctx.role == "client":

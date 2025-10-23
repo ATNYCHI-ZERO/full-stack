@@ -1,11 +1,6 @@
-import pathlib
-import sys
-
-ROOT = pathlib.Path(__file__).resolve().parents[1]
-"""Pytest configuration ensuring local packages resolve during collection."""
 from __future__ import annotations
 
-"""Test configuration that ensures the repository root is importable."""
+"""Pytest configuration ensuring local packages resolve during collection."""
 
 import sys
 from pathlib import Path
