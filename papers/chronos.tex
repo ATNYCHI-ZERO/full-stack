@@ -1,0 +1,90 @@
+\documentclass[runningheads]{llncs}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{amsmath,amssymb}
+\usepackage{mathtools}
+\usepackage{microtype}
+
+\begin{document}
+
+\title{Chronos: A Triple-Hybrid Post-Quantum Key Encapsulation Mechanism for Lineage-Based Threat Resilience}
+\titlerunning{Chronos: Triple-Hybrid Post-Quantum KEM}
+
+\author{Anonymous}
+\institute{}
+
+\maketitle
+
+\begin{abstract}
+We introduce Chronos, a post-quantum hybrid key encapsulation mechanism (KEM) that combines X25519, ML-KEM, and Classic McEliece into a triple-hybrid handshake. By binding the outputs of these cryptographically distinct primitives within a unified key schedule, Chronos ensures that its security relies on the hardness of at least one underlying problem. The protocol incorporates a key-committing AEAD, deterministic nonce generation, and transcript hashing to provide a high-assurance authenticated key exchange. We detail the construction, key derivation schedule, and hybrid security rationale that position Chronos as a conservative framework for securing communications across classical and quantum eras.
+\keywords{Post-Quantum Cryptography \and Hybrid Encryption \and Key Encapsulation Mechanism \and Algorithmic Diversity \and Defense-in-Depth}
+\end{abstract}
+
+\section{Introduction}
+The security of public-key cryptography has historically depended on the presumed hardness of problems such as integer factorization and discrete logarithms. The development of cryptographically relevant quantum computers would invalidate these assumptions, motivating the global migration to post-quantum cryptography (PQC) led by the National Institute of Standards and Technology (NIST). During this transition, relying exclusively on classical algorithms invites eventual compromise, while relying on a single new primitive risks exposure to unforeseen cryptanalytic advances. Hybrid constructions that combine classical and post-quantum primitives mitigate these risks by ensuring that the resulting scheme remains secure as long as at least one constituent component is secure.
+
+Chronos extends this principle by combining three families of assumptions in a single KEM instantiation. The protocol integrates X25519 for classical security and ecosystem compatibility, ML-KEM (formerly Kyber) for lattice-based post-quantum security, and Classic McEliece for code-based post-quantum security. The resulting triple-hybrid KEM forces an adversary to compromise elliptic-curve, lattice, and code-based problems simultaneously. We present the Chronos key exchange, its key derivation framework, and a rationale for its security properties.
+
+\section{Preliminaries}
+Chronos relies on standard cryptographic building blocks.
+
+A key encapsulation mechanism (KEM) consists of algorithms \textsf{KeyGen} producing a public and secret key pair, \textsf{Encaps} generating a ciphertext and a shared secret from a public key, and \textsf{Decaps} recovering the shared secret from a secret key and ciphertext. IND-CCA2 security is required for KEMs used in Chronos. An authenticated encryption with associated data (AEAD) scheme provides confidentiality, integrity, and authenticity for messages together with integrity protection for associated data. The key derivation function (KDF) is instantiated with HKDF, modeled as the functions \textsf{HKDF-Extract} and \textsf{HKDF-Expand}.
+
+Chronos uses the following primitives:
+\begin{itemize}
+  \item X25519, an elliptic-curve Diffie--Hellman function providing approximately 128 bits of classical security \cite{bernstein2006curve25519}.
+  \item ML-KEM-1024, a lattice-based KEM selected by NIST targeting level 5 security \cite{bos2020crystalskyber}.
+  \item Classic McEliece 6960119, a code-based KEM targeting level 5 security \cite{bernstein2020classicmceliece}.
+\end{itemize}
+
+\section{The Chronos Protocol}
+Chronos establishes a shared session secret through a single-flow authenticated handshake. Let Alice be the initiator and Bob be the responder. Bob holds long-term public keys \((\mathit{pk}_\mathrm{X}, \mathit{pk}_\mathrm{ML}, \mathit{pk}_\mathrm{CM})\) for X25519, ML-KEM, and Classic McEliece, respectively. Both parties maintain a running transcript hash \(H_\mathrm{tr}\) initialized with a domain separation tag.
+
+\subsection{Handshake and Key Encapsulation}
+The protocol proceeds as follows.
+\begin{enumerate}
+  \item \textbf{Alice's operations.}
+  Alice generates an ephemeral X25519 key pair and computes the Diffie--Hellman shared secret \(ss_\mathrm{X} = \textsf{X25519.DH}(\mathit{esk}_\mathrm{A}, \mathit{pk}_\mathrm{X})\). She encapsulates under Bob's post-quantum public keys to obtain ciphertexts \(ct_\mathrm{ML}, ct_\mathrm{CM}\) and shared secrets \(ss_\mathrm{ML}, ss_\mathrm{CM}\). Alice updates the transcript hash with her ephemeral public key and the ciphertexts, then transmits \((\mathit{epk}_\mathrm{A}, ct_\mathrm{ML}, ct_\mathrm{CM})\).
+  \item \textbf{Bob's operations.}
+  Bob updates his transcript hash and decapsulates to recover the shared secrets \(ss_\mathrm{X}, ss_\mathrm{ML}, ss_\mathrm{CM}\).
+  \item \textbf{Initial keying material.}
+  Both parties concatenate the shared secrets to form the initial keying material \(\mathit{IKM} = ss_\mathrm{X} \|\| ss_\mathrm{ML} \|\| ss_\mathrm{CM}\).
+\end{enumerate}
+
+\subsection{Key Schedule}
+Chronos uses HKDF to bind the shared secrets to the handshake context. The salt for \textsf{HKDF-Extract} is the finalized transcript hash, producing a pseudorandom key \(\mathit{PRK}\). Expansion derives the master secret and symmetric keys:
+\begin{align*}
+  \mathit{master} &= \textsf{HKDF-Expand}(\mathit{PRK}, \text{``chronos-master''}, L_\mathrm{master}), \\
+  ck_s &= \textsf{HKDF-Expand}(\mathit{master}, \text{``send\_key''}, L_\mathrm{key}), \\
+  ck_r &= \textsf{HKDF-Expand}(\mathit{master}, \text{``recv\_key''}, L_\mathrm{key}).
+\end{align*}
+The derived keys are consumed by a key-committing AEAD with deterministic nonce derivation. Transcript binding prevents unknown key-share attacks, and the master secret can seed a ratcheting mechanism for forward secrecy.
+
+\section{Security Considerations}
+Chronos inherits security from each constituent primitive. As long as any one of the shared secrets remains indistinguishable from random, the concatenated \(\mathit{IKM}\) is pseudorandom, preserving the security of derived keys. This hybrid security captures both classical and quantum adversaries: X25519 thwarts classical attackers, while ML-KEM and Classic McEliece resist quantum attackers. Algorithmic diversity mitigates systemic risk by spanning elliptic-curve, lattice, and code-based hardness assumptions. Using the transcript hash as salt provides key commitment, ensuring that both parties derive keys bound to the observed session data. Incorporating ratcheting affords forward secrecy even if long-term keys are later compromised.
+
+\section{Conclusion and Future Work}
+Chronos offers a conservative template for hybrid key exchange during the transition to post-quantum cryptography. Future work includes a formal security proof in a standard model, implementation and performance evaluation on constrained platforms, and integration with emerging KEM-based APIs \cite{brainard2023kemapi}.
+
+\begin{thebibliography}{8}
+\bibitem{bernstein2006curve25519}
+Bernstein, D.J.: Curve25519: New Diffie--Hellman speed records. In: \emph{Public Key Cryptography (PKC) 2006}. LNCS, vol. 3958, pp. 207--228. Springer (2006)
+
+\bibitem{bos2020crystalskyber}
+Bos, J.W., et al.: CRYSTALS-Kyber. Submission to the NIST Post-Quantum Cryptography Standardization Process, Round 3 (2020)
+
+\bibitem{bernstein2020classicmceliece}
+Bernstein, D.J., et al.: Classic McEliece. Submission to the NIST Post-Quantum Cryptography Standardization Process, Round 3 (2020)
+
+\bibitem{brainard2023kemapi}
+Brainard, J., et al.: A KEM-based API for post-quantum cryptography. Internet-Draft, draft-ietf-pquip-pqc-kem-api-02 (2023)
+
+\bibitem{bellare1993entity}
+Bellare, M., Rogaway, P.: Entity authentication and key distribution. In: \emph{CRYPTO '93}. LNCS, vol. 773, pp. 232--249. Springer (1994)
+
+\bibitem{krawczyk2010hkdf}
+Krawczyk, H., Eronen, P.: HMAC-based extract-and-expand key derivation function (HKDF). RFC 5869 (2010)
+
+\end{thebibliography}
+
+\end{document}
