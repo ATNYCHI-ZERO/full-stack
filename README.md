@@ -116,6 +116,13 @@ functioning as expected:
 ```bash
 pytest
 ```
+
+## Additional documentation
+
+* [`docs/gen5_command_ai_swarms.md`](docs/gen5_command_ai_swarms.md) – summary
+  of the Gen-5 command interface and Q-HORNET_O swarm concepts supplied in the
+  latest white papers, with notes on how they intersect with the TRI-CROWN
+  security framework.
 # TRI-CROWN Hybrid PQ → AGI System Architecture (Comprehensive Edition)
 
 ## Abstract
