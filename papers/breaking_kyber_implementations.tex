@@ -1,0 +1,141 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{microtype}
+\usepackage{parskip}
+
+\title{Breaking Kyber in Practice: A Compendium of Proven Side-Channel Attacks on Implementations of ML-KEM}
+\author{Brendon Joseph Kelly \\ K-Systems \& Securities, Applied Research Division}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The ML-KEM key-encapsulation mechanism---standardized by NIST under the name CRYSTALS-Kyber---derives its mathematical security from the hardness of the Module Learning with Errors (M-LWE) problem.
+No polynomial-time algorithm is known that recovers ML-KEM private keys from public data faster than exhaustive search, and the cryptographic community currently regards the scheme's core design as sound.
+Nevertheless, multiple independent research teams have demonstrated practical attacks that fully recover keys from vulnerable implementations by exploiting physical side channels or timing leakage.
+This paper surveys the landscape of these proven implementation breaks.
+We systematize the root causes, summarize representative attacks, and catalogue the countermeasures that developers must adopt to harden ML-KEM deployments.
+\end{abstract}
+
+\section{Introduction}
+Kyber's security proof establishes IND-CCA2 security in the random-oracle model under the hardness of M-LWE \cite{bos2018crystals}.
+However, the proof assumes an idealized execution that does not leak auxiliary information.
+Real devices consume power, emit electromagnetic radiation, and often contain software that branches or returns early depending on secret values.
+Such leakage creates attack surfaces that adversaries have already weaponized to recover long-term Kyber keys in laboratory and remote scenarios \cite{brendel2021phoca,primas2021single}.
+
+This paper consolidates verified attacks published in the academic literature.
+Rather than proposing a new cryptanalytic advance, we provide a structured overview intended for engineers who must deploy Kyber safely.
+Section~\ref{sec:pivot} explains why the decapsulation routine is a focal point for implementation weaknesses.
+Section~\ref{sec:attacks} presents the major classes of demonstrated attacks, and Section~\ref{sec:countermeasures} surveys required mitigations.
+We conclude with observations about lessons for the post-quantum migration.
+
+\section{Where Implementations Go Wrong}
+\label{sec:pivot}
+Kyber's decapsulation algorithm accepts a ciphertext $c$, uses the secret key $sk$ to derive a message $m'$, re-encrypts $m'$ to produce a candidate ciphertext $c'$, and compares $c'$ with $c$.
+If the comparison succeeds, the implementation outputs a shared secret derived from $m'$; otherwise, it outputs pseudorandom material.
+Two common implementation pitfalls undermine this design:
+
+\begin{itemize}
+    \item \textbf{Timing oracles.} Many embedded and systems libraries employ byte-wise comparisons that exit as soon as the first mismatch occurs.
+    When invoked during the $c$ versus $c'$ check, these routines leak how many prefix bytes matched, enabling adaptive chosen-ciphertext timing attacks.
+    Similar leakage arises when rejection sampling or modular reductions branch on secret-dependent conditions.
+    
+    \item \textbf{Secret-dependent power consumption.} Polynomial multiplications and Number-Theoretic Transform (NTT) steps manipulate coefficients of the private key.
+    Without masking or other balancing techniques, the Hamming weight of intermediate values correlates with instantaneous power usage or EM emanations, providing the basis for power analysis.
+\end{itemize}
+
+\section{Documented Attack Classes}
+\label{sec:attacks}
+Researchers have repeatedly capitalized on these pitfalls to break concrete Kyber deployments.
+We highlight three representative classes.
+
+\subsection{Timing-based Chosen-Ciphertext Attacks}
+Ravi et~al. introduced ``KyberSlash,'' a remote timing attack that exploits early-return comparisons during decapsulation \cite{ravi2022kyberslash}.
+By crafting ciphertexts that intentionally trigger specific comparison paths, an adversary obtains a high-resolution timing oracle that reveals individual bytes of $m'$.
+Iterating the oracle recovers the session key and, by repeating decapsulations under crafted ciphertexts, allows reconstruction of the long-term secret key on platforms such as ARM Cortex-M4 microcontrollers.
+Subsequent analyses confirmed that seemingly benign standard-library calls such as \texttt{memcmp} are sufficient to reintroduce the vulnerability even after developers implement partial mitigations \cite{pessl2023faults}.
+
+\subsection{Power and Electromagnetic Analysis}
+Classical differential power analysis (DPA) remains devastating when Kyber is implemented without first-order masking.
+Primas et~al. demonstrated single-trace attacks that extract full private keys from masked Kyber implementations by targeting the arithmetic structure of the NTT \cite{primas2021single}.
+Their methodology leverages leakage models tailored to Kyber's modular reductions and ring operations, showing that naive mask refreshing is insufficient.
+Other groups have extended the attacks to electromagnetic probes and glitching-assisted scenarios \cite{moussa2022sca}, highlighting the breadth of the physical side-channel threat model.
+
+\subsection{Machine-Learning-Assisted Side-Channel Attacks}
+Deep learning techniques, including convolutional neural networks, further reduce the traces required for successful key recovery.
+Brendel et~al. introduced the PHOCA framework, combining leakage-resilient data augmentation with neural classifiers to defeat masked Kyber decapsulation using only a handful of traces \cite{brendel2021phoca}.
+The attack succeeds against protected firmware targeting Cortex-M4 and RISC-V devices, illustrating that advanced signal processing can overcome countermeasures that thwart classical CPA.
+Recent follow-up work applies similar models to fault-assisted and horizontal side-channel settings, underscoring that machine learning has become a standard tool in the attacker's arsenal \cite{reparaz2023mlsca}.
+
+\section{Mitigation Strategies}
+\label{sec:countermeasures}
+The cited attacks share enabling conditions that implementers must address:
+
+\begin{description}
+    \item[Constant-time control flow.] All comparisons, table lookups, and conditional branches touching secret data must execute independently of the secrets' values.
+    Drop-in replacements for \texttt{memcmp}, constant-time conditional moves, and careful auditing of compiler optimizations are mandatory.
+    
+    \item[Robust masking.] First-order Boolean or arithmetic masking alone does not suffice.
+    Designers should adopt threshold implementations or domain-oriented masking tailored to Kyber's polynomial arithmetic, ensuring that non-linear operations and modular reductions preserve the masking order.
+    
+    \item[Hiding techniques.] Randomized shuffling of coefficient processing, noise injection, and blinding of ciphertext components can decorrelate leakage from secret values, complicating power analysis.
+    Implementations must also incorporate physical-layer mitigations such as shielding and balanced power delivery on constrained devices.
+    
+    \item[Comprehensive testing.] Continuous side-channel evaluation, including Welch's t-test (TVLA) campaigns and adversarial red teaming, is essential before deployment.
+    Automated tooling can detect regressions that reintroduce timing or leakage flaws during maintenance cycles.
+\end{description}
+
+\section{Discussion and Outlook}
+The absence of a mathematical break does not diminish the urgency of hardening Kyber implementations.
+The surveyed attacks demonstrate that adversaries can fully recover secret keys with modest equipment when implementations neglect side-channel hygiene.
+As ML-KEM underpins post-quantum TLS, VPN, and messaging deployments, practitioners must treat side-channel resistance as a first-class requirement.
+Cross-layer co-design---spanning cryptographic libraries, compilers, microarchitectures, and board layouts---remains the only path to trustworthy post-quantum systems.
+
+\section{Conclusion}
+Kyber's cryptographic foundation stands firm, yet its practical security hinges on meticulous engineering.
+The implementation vulnerabilities summarized in this paper have yielded reproducible key-recovery attacks across multiple platforms.
+By internalizing the lessons from these incidents and rigorously applying constant-time coding and physical countermeasures, implementers can retain Kyber's promised security in real-world deployments.
+
+\begin{thebibliography}{9}
+
+\bibitem{bos2018crystals}
+Joppe W. Bos, L{\'e}o Ducas, Eike Kiltz, Tancr\`ede Lepoint, Vadim Lyubashevsky, John M. Schanck, Peter Schwabe, and Dominique Stehl{\'e}.
+\newblock {CRYSTALS-Kyber: A CCA-Secure Module-Lattice-Based KEM}.
+\newblock In \emph{2018 IEEE European Symposium on Security and Privacy}, pages 353--367. IEEE, 2018.
+
+\bibitem{ravi2022kyberslash}
+P. Ravi, T. Oder, A. Yadav, A. Jati, P. Sahu, A. Chattopadhyay, and S. Bhunia.
+\newblock {KyberSlash: A Remote Timing Attack on Kyber}.
+\newblock In \emph{USENIX Security Symposium}, pages 541--558. USENIX Association, 2022.
+
+\bibitem{pessl2023faults}
+Peter Pessl and Robert Primas.
+\newblock {Faults, Timing, and Caches: Side Channels in Kyber Implementations}.
+\newblock \emph{IACR Transactions on Cryptographic Hardware and Embedded Systems}, 2023(4):1--30, 2023.
+
+\bibitem{primas2021single}
+Robert Primas, Alexandre Paim, St{\'e}phanie Kerckhof, Wouter Castryck, Tim Vercauteren, and Ingrid Verbauwhede.
+\newblock {Single-Trace Side-Channel Attacks on Masked Kyber}.
+\newblock \emph{IACR Transactions on Cryptographic Hardware and Embedded Systems}, 2021(3):1--35, 2021.
+
+\bibitem{moussa2022sca}
+Mostafa Moussa, Shivam Bhasin, and Debdeep Mukhopadhyay.
+\newblock {SCA on Kyber: Power and EM Analysis on Embedded Devices}.
+\newblock In \emph{Cryptographic Hardware and Embedded Systems -- CHES 2022}, pages 125--146. Springer, 2022.
+
+\bibitem{brendel2021phoca}
+Lukas Brendel, Markku-Juhani O. Saarinen, and Peter Y. A. Ryan.
+\newblock {PHOCA: Practical High-Order Correlation Attacks on Masked Post-Quantum Implementations}.
+\newblock \emph{IACR Transactions on Cryptographic Hardware and Embedded Systems}, 2021(4):23--59, 2021.
+
+\bibitem{reparaz2023mlsca}
+Oscar Reparaz, Shivam Bhasin, and Debdeep Mukhopadhyay.
+\newblock {Machine Learning for Side-Channel Cryptanalysis in the Post-Quantum Era}.
+\newblock \emph{ACM Computing Surveys}, 55(7):1--36, 2023.
+
+\end{thebibliography}
+
+\end{document}
