@@ -1,0 +1,70 @@
+
+### PROVISIONAL PATENT APPLICATION
+
+**Title:** A System for Multi-Layer Recursive Encryption Using Nonlinear Fractal-Based Key Generation  
+**Inventor:** Brendon Kelly  
+**Filing Date:** [Insert Date]  
+**Applicant:** Brendon Kelly from K-Systems and Securities  
+
+---
+
+## **FIELD OF THE INVENTION**  
+The present invention relates to **advanced cryptographic encryption techniques** designed to ensure post-quantum security using **multi-layer recursive encryption and entropy-driven key generation**. This system is specifically designed to prevent decryption by both classical and quantum computing techniques.
+
+---
+
+## **BACKGROUND OF THE INVENTION**  
+Current cryptographic methods, such as **AES-256 and RSA-8192**, rely on **fixed algorithmic structures**, making them vulnerable to **future quantum decryption methods**. Additionally, most encryption keys are **predictable or stored in a static way**, creating risks of exposure.  
+
+This invention provides a **dynamic, non-reversible encryption method** based on **recursive key obfuscation**, **nonlinear fractal key generation**, and **adaptive entropy shifts**, making it immune to decryption without an exact match to its evolving key structure.
+
+---
+
+## **SUMMARY OF THE INVENTION**  
+This encryption system (ARES-1) utilizes **a novel method of cryptographic key generation and transformation**, ensuring unbreakable security by integrating:  
+
+1. **Nonlinear Fractal Key Generation** → Generates cryptographic keys using a **recursive, entropy-driven process**, ensuring unpredictability.  
+2. **Multi-Layer Recursive Encryption** → Encrypts data using **multiple interdependent layers**, making decryption impossible without the original process.  
+3. **Entropy-Based Dynamic Key Evolution** → Each encryption operation generates a **completely unique key state**, preventing brute-force attacks.  
+4. **Adaptive Post-Quantum Resistance** → Designed to **counteract quantum decryption methods**, ensuring indefinite security.  
+5. **Ghost Encryption Layer** → An additional obfuscation mechanism ensures **encrypted data appears as meaningless noise**, preventing pattern recognition.  
+
+---
+
+## **DETAILED DESCRIPTION OF THE INVENTION**  
+The encryption process consists of **three main phases**:
+
+### **1. Cryptographic Key Generation (Fractal-Based Key System)**
+- Each key is derived from a **recursive, nonlinear fractal equation**, ensuring uniqueness.  
+- The entropy-driven function uses **real-time entropy sources**, making key reproduction impossible.  
+
+### **2. Multi-Layer Recursive Encryption Process**
+- Data is **first encoded using a non-reversible transformation matrix**.  
+- Multiple encryption layers apply **dynamically shifting entropy keys**, preventing pattern analysis.  
+- A final **frequency-modulated harmonic locking mechanism** ensures the encryption remains non-invertible.  
+
+### **3. Adaptive Entropy Shifting for Key Evolution**
+- Each encryption cycle **modifies its own cryptographic structure**, meaning previous keys cannot decrypt new data.  
+- The system constantly adjusts based on **time signatures, entropy variance, and cryptographic noise**, ensuring every encryption operation is unique.  
+
+---
+
+## **CLAIMS**  
+1. **A multi-layer encryption system** utilizing **recursive entropy-driven fractal key generation**, ensuring **post-quantum security**.  
+2. **A method of dynamically evolving cryptographic keys**, where **each encryption cycle alters the next**, making unauthorized decryption impossible.  
+3. **An adaptive security protocol using harmonic encryption structures** to prevent **decryption pattern recognition** by AI or quantum-based models.  
+4. **A system that integrates self-obfuscating encryption techniques** to ensure **undetectable, non-reversible ciphertext**.  
+5. **A cryptographic method that generates unique encryption states per communication session**, ensuring **single-use, self-modifying encryption keys**.  
+
+---
+
+## **DRAWINGS (OPTIONAL)**  
+If needed, diagrams illustrating **the recursive encryption process and key transformation** can be included.
+
+---
+
+## **CONCLUSION**  
+This encryption system provides **the most advanced, adaptive, and unbreakable encryption method available**, ensuring complete security even against quantum-level decryption attempts.  
+
+**Patent Pending** status is claimed under **USPTO Provisional Application Rules**, granting priority rights for **one year** before filing a full non-provisional patent.
+
