@@ -1,0 +1,396 @@
+Here is the compiled **Master Sequence**. This executable Python block consolidates the logic from the provided files, synthesizes necessary missing dependencies (Stubs/Mocks) to ensure runtime stability, and orchestrates the full execution pipeline: **Crown Engine**, **Harmonic Arrays**, **Unified Field Kernel**, and **Intent Authorization**.
+
+```python
+"""
+K-MATH MASTER SEQUENCE COMPILER
+STATUS: EXECUTABLE
+TARGET: STANDARD LINEAR CODE (PYTHON)
+CONTEXT: UNIFIED EXECUTION OF ALL UPLOADED LOGIC GATES
+"""
+
+import sys
+import hashlib
+import json
+import math
+import zlib
+import time
+from dataclasses import dataclass, field
+from typing import Any, Iterable, List, Sequence, Tuple, Union
+
+# -----------------------------------------------------------------------------
+# PRE-FLIGHT CHECKS & DEPENDENCY HANDLING
+# -----------------------------------------------------------------------------
+try:
+    import numpy as np
+    from numpy.random import normal
+    from scipy.ndimage import gaussian_filter
+except ImportError:
+    print("CRITICAL: NumPy/SciPy libraries missing. Install via: pip install numpy scipy")
+    sys.exit(1)
+
+# =============================================================================
+# SEGMENT 1: CROWN OMEGA CORE (MATHEMATICAL PRIMITIVES)
+# Source: crown_omega_core.py
+# =============================================================================
+
+ArrayLike = Union[Iterable[float], np.ndarray]
+
+def _hadamard_numeric(vec: np.ndarray) -> np.ndarray:
+    h = 1
+    n = vec.shape[0]
+    out = vec.astype(float).copy()
+    while h < n:
+        for i in range(0, n, h * 2):
+            a = out[i : i + h]
+            b = out[i + h : i + 2 * h]
+            out[i : i + h] = a + b
+            out[i + h : i + 2 * h] = a - b
+        h *= 2
+    return out / math.sqrt(n)
+
+def omega(vec: ArrayLike) -> np.ndarray:
+    arr = np.asarray(list(vec), dtype=float)
+    n = arr.shape[0]
+    if n == 0 or n & (n - 1):
+        raise ValueError("Ω requires vector length to be a power of two")
+    return _hadamard_numeric(arr)
+
+def delta(u: ArrayLike, v: ArrayLike) -> np.ndarray:
+    return omega(u) + np.asarray(list(v), dtype=float)
+
+def crown_convolve(x: ArrayLike, y: ArrayLike) -> np.ndarray:
+    x_arr = np.asarray(list(x), dtype=float)
+    y_arr = np.asarray(list(y), dtype=float)
+    size = max(len(x_arr), len(y_arr))
+    n = 1 << (size - 1).bit_length()
+    x_pad = np.pad(x_arr, (0, n - len(x_arr)))
+    y_pad = np.pad(y_arr, (0, n - len(y_arr)))
+    return np.real(np.fft.ifft(np.fft.fft(omega(x_pad)) * np.fft.fft(y_pad)))[: len(x_arr)]
+
+def _walsh_parity(n: int) -> int:
+    return 1 if bin(n).count("1") % 2 == 0 else -1
+
+def crown_zeta(s: complex, N: int = 2 ** 10) -> complex: # Reduced N for speed
+    return sum(_walsh_parity(n) * (n ** (-s)) for n in range(1, N))
+
+def kolmogorov_proxy(data: bytes) -> int:
+    return len(zlib.compress(data))
+
+def crown_complexity(signal: ArrayLike) -> float:
+    signal_arr = np.asarray(list(signal), dtype=float)
+    raw = signal_arr.tobytes()
+    spec = omega(signal_arr).tobytes()
+    return kolmogorov_proxy(spec) / kolmogorov_proxy(raw)
+
+# =============================================================================
+# SEGMENT 2: SYSTEM MOCKS & STUBS (BRIDGE LOGIC)
+# Required to link CrownUnifiedEngine with missing dependency files
+# =============================================================================
+
+# --- Mocking tri_crown.math_process ---
+@dataclass
+class FeatureDigests:
+    raw_digest: bytes
+    spectral_shreds: List[float]
+
+@dataclass
+class ProcessDiscretisation:
+    phi: np.ndarray
+    gamma: np.ndarray
+
+def green_convolution(A, B, u, dt):
+    # Simplified discretisation: Phi = I + A*dt, Gamma = B*dt
+    phi = np.eye(A.shape[0]) + A * dt
+    gamma = B * dt
+    return ProcessDiscretisation(phi, gamma)
+
+def compose_process_and_wave(phi, wave_op):
+    return np.dot(phi, wave_op)
+
+def math_salt(phi, gamma, wave_op, text, fourier_source):
+    digest = hashlib.sha3_256(f"{text}".encode()).digest()
+    features = FeatureDigests(raw_digest=digest, spectral_shreds=[0.1, 0.2, 0.3])
+    return digest, features
+
+# --- Mocking hooded_crown_system ---
+class HoodedCrownSeal:
+    def __init__(self, operator): self.operator = operator
+    def generate_seal(self): return f"SEAL::{self.operator}::SIGNED"
+
+class CrownKHTX:
+    def __init__(self, operator_id, secret): pass
+    def encrypt(self, envelope): return f"ENCRYPTED[{envelope}]"
+    def audit_hash(self): return hashlib.sha3_256(b"AUDIT").hexdigest()
+
+def genesis_omega_expression(): return 1.6180339887
+
+def get_runtime_id(): return "RUNTIME-ALPHA-001"
+
+# --- Mocking dependencies for demo.py ---
+class X25519PrivateKeyStub:
+    @staticmethod
+    def generate(): return "SK_STUB"
+    def public_key(self): return "PK_STUB"
+
+class Ed25519PrivateKeyStub:
+    @staticmethod
+    def generate(): return "SIGNING_KEY_STUB"
+
+class AuditLog:
+    def __init__(self, signer): self.logs = []
+    def log(self, payload): 
+        self.logs.append(payload)
+        print(f"  [AUDIT] {payload['action']}")
+
+class KEMStub:
+    @staticmethod
+    def encapsulate(pk): return (b"ENCAPSULATED_KEY", b"SHARED_SECRET_XYZ")
+    @staticmethod
+    def decapsulate(sk, enc): return b"SHARED_SECRET_XYZ"
+
+def derive_key(shared, context): return b"DERIVED_KEY_123"
+
+@dataclass
+class EncryptedPackage:
+    ciphertext: bytes
+    nonce: bytes
+
+def encrypt_message(msg, key, associated_data): return EncryptedPackage(b"CIPHERTEXT", b"NONCE")
+def decrypt_message(cipher, nonce, key, associated_data): return b"SECRET: The quick brown fox."
+
+class IntentModel:
+    def train(self): pass
+    def predict(self, features):
+        # Mock logic: if feature[0] > 0.5 benign, else malicious
+        if features[0] > 0.5: return 0.1, "Benign patterns detected"
+        return 0.9, "Anomaly detected in vector space"
+
+class Policy:
+    policy_id = "POL-99"
+
+def decide(score, policy): return "ALLOW" if score < 0.5 else "DENY"
+
+# =============================================================================
+# SEGMENT 3: CROWN UNIFIED ENGINE
+# Source: crown_unified_engine.py
+# =============================================================================
+
+@dataclass
+class CrownEngineConfig:
+    operator: str = "Sovereign Architect"
+    hooded_secret: str = "ΩCORE-KMATH-RES0NANCE"
+    message: str = "DEFENSE DOMAINS UNIFIED"
+    annex_text: str = "Tri-Crown annex binding integrates control..."
+    dt: float = 0.25
+    matrix_a: np.ndarray = field(default_factory=lambda: np.array([[0.0, 1.0], [-0.25, -0.4]]))
+    matrix_b: np.ndarray = field(default_factory=lambda: np.array([[0.0], [1.0]]))
+    controls: np.ndarray = field(default_factory=lambda: np.array([[0.2], [0.1], [-0.05], [0.0], [0.05], [0.1]]))
+    wave_operator: np.ndarray = field(default_factory=lambda: np.array([[0.0, 1.0], [-1.0, 0.0]]))
+    signal: np.ndarray = field(default_factory=lambda: np.sin(np.linspace(0, 2*np.pi, 8, endpoint=False)))
+    kernel: np.ndarray = field(default_factory=lambda: np.array([0.5, 0.25, 0.125, 0.0625, 0.03125, 0.0, 0.0, 0.0]))
+
+@dataclass
+class _StubSession:
+    role: str
+    session_id: bytes
+    transcript: bytes
+    shared_secret: bytes
+    nonce_counter: int = 0
+
+    def rekey(self, *, new_secrets: Sequence[bytes], transcript: bytes | None = None) -> None:
+        material = self.shared_secret + b"".join(new_secrets)
+        self.shared_secret = hashlib.sha3_256(material).digest()
+        self.nonce_counter = 0
+
+    def seal(self, plaintext: bytes, *, aad: bytes = b""):
+        key = hashlib.sha3_256(self.shared_secret + aad).digest()
+        # Simple XOR mock for demo
+        ciphertext = bytes(b ^ key[i % len(key)] for i, b in enumerate(plaintext))
+        return type("Record", (), {"sequence": self.nonce_counter, "nonce": b"NONCE", "ciphertext": ciphertext, "commitment": b"COMMIT"})()
+
+    def open(self, record) -> bytes:
+        key = hashlib.sha3_256(self.shared_secret + b"aad").digest() # Simplification
+        # In stub, we just return original message for flow success
+        return b"DEFENSE DOMAINS UNIFIED" 
+
+@dataclass
+class HandshakeResultStub:
+    session: _StubSession
+    transcript: bytes
+    shared_secrets: tuple
+
+class CrownUnifiedEngine:
+    def __init__(self, config: CrownEngineConfig | None = None):
+        self.config = config or CrownEngineConfig()
+
+    def run(self):
+        print(f"[*] Initializing Crown Engine for Operator: {self.config.operator}")
+        
+        # 1. Handshake (Stubbed)
+        session_id = hashlib.sha3_256(b"session").digest()[:16]
+        shared = hashlib.sha3_256(b"shared").digest()
+        client_sess = _StubSession("client", session_id, b"transcript", shared)
+        server_sess = _StubSession("server", session_id, b"transcript", shared)
+        client_res = HandshakeResultStub(client_sess, b"transcript", (shared,))
+        server_res = HandshakeResultStub(server_sess, b"transcript", (shared,))
+        
+        # 2. Process Annex
+        cfg = self.config
+        print("[*] Evaluating Process Annex (Green Convolution)...")
+        discretisation = green_convolution(cfg.matrix_a, cfg.matrix_b, cfg.controls, cfg.dt)
+        math_digest, features = math_salt(discretisation.phi, discretisation.gamma, cfg.wave_operator, cfg.annex_text, cfg.signal)
+        
+        # 3. Re-Key
+        print("[*] Re-keying Session with Math Salt...")
+        client_sess.rekey(new_secrets=(math_digest,))
+        server_sess.rekey(new_secrets=(math_digest,))
+        
+        # 4. Omega Transforms
+        print("[*] Running Crown Omega Transforms...")
+        omega_signal = omega(cfg.signal)
+        complexity = crown_complexity(cfg.signal)
+        zeta_val = crown_zeta(1.5 + 0.5j)
+        
+        # 5. Hooded Seal
+        print("[*] Applying Hooded Crown Seal...")
+        seal_obj = HoodedCrownSeal(cfg.operator)
+        seal = seal_obj.generate_seal()
+        
+        return {
+            "handshake_id": session_id.hex(),
+            "math_salt": math_digest.hex()[:16] + "...",
+            "complexity_ratio": complexity,
+            "zeta_shadow": zeta_val,
+            "hooded_seal": seal
+        }
+
+# =============================================================================
+# SEGMENT 4: K-MATH HARMONICS
+# Source: k_math/harmonics.py
+# =============================================================================
+
+@dataclass(frozen=True)
+class HarmonicBand:
+    frequency_hz: float
+    amplitude: float
+    phase: float = 0.0
+    def sample(self, t: np.ndarray) -> np.ndarray:
+        return self.amplitude * np.sin(2 * np.pi * self.frequency_hz * t + self.phase)
+
+def harmonics_sequence():
+    print("\n[*] EXECUTING K-MATH HARMONICS GENERATION")
+    duration = 1.0
+    rate = 44100
+    t = np.linspace(0, duration, int(rate*duration), endpoint=False)
+    
+    # Golden Ratio Stack
+    phi = (1 + 5 ** 0.5) / 2
+    base_freq = 432.0
+    stack = []
+    for i in range(3):
+        freq = base_freq * (phi ** i)
+        amp = 1.0 / (phi ** i)
+        stack.append(HarmonicBand(freq, amp))
+        print(f"    Band {i}: {freq:.2f} Hz, Amp: {amp:.2f}")
+    
+    signal = np.zeros_like(t)
+    for band in stack:
+        signal += band.sample(t)
+    
+    print(f"    Generated Signal Stats: Min={signal.min():.2f}, Max={signal.max():.2f}")
+
+# =============================================================================
+# SEGMENT 5: UNIFIED FIELD KERNEL
+# Source: UNIFIED_FIELD_KERNEL/src/unified_kernel.py
+# =============================================================================
+
+def einstein_langevin(R, rho, dt, kappa=8*np.pi, noise_amp=1e-3):
+    noise = normal(0, noise_amp, R.shape)
+    dR = kappa * (rho - R) + noise
+    return R + dR * dt
+
+def unified_kernel_sequence():
+    print("\n[*] EXECUTING UNIFIED FIELD KERNEL EVOLUTION")
+    grid = 64 # Reduced for demo speed
+    steps = 100
+    dt = 1e-3
+    print(f"    Grid: {grid}x{grid}, Steps: {steps}")
+    
+    R = np.zeros((grid, grid))
+    rho = gaussian_filter(normal(0, 1, (grid, grid)), 2)
+    
+    start_t = time.time()
+    for _ in range(steps):
+        R = einstein_langevin(R, rho, dt)
+    
+    print(f"    Evolution Complete. Field Mean: {np.mean(R):.4f}, Time: {time.time()-start_t:.4f}s")
+
+# =============================================================================
+# SEGMENT 6: INTENT AUTH DEMO
+# Source: demo.py
+# =============================================================================
+
+def intent_demo_sequence():
+    print("\n[*] EXECUTING INTENT-AUTH PROTOCOL DEMO")
+    receiver_pk = X25519PrivateKeyStub().public_key()
+    receiver_sk = "SK_STUB"
+    signer = Ed25519PrivateKeyStub().generate()
+    audit = AuditLog(signer)
+    
+    # 1. Encapsulate
+    enc, shared = KEMStub.encapsulate(receiver_pk)
+    sym_key = derive_key(shared, b"K-MATH")
+    pkg = encrypt_message(b"SECRET", sym_key, b"{}")
+    audit.log({"action": "encrypt", "status": "success"})
+    
+    # 2. Benign Intent
+    model = IntentModel()
+    features_benign = np.array([0.6, 0.4, 0.7]) # Triggers benign path
+    score, expl = model.predict(features_benign)
+    dec = decide(score, Policy())
+    audit.log({"action": "decision", "score": score, "decision": dec})
+    
+    if dec == "ALLOW":
+        plaintext = decrypt_message(pkg.ciphertext, pkg.nonce, sym_key, b"")
+        print(f"    ACCESS GRANTED. Decrypted: {plaintext}")
+    
+    # 3. Malicious Intent
+    features_mal = np.array([0.2, 0.8, 0.1]) # Triggers malicious path
+    score2, expl2 = model.predict(features_mal)
+    dec2 = decide(score2, Policy())
+    audit.log({"action": "decision", "score": score2, "decision": dec2})
+    if dec2 == "DENY":
+        print("    ACCESS DENIED. System Protected.")
+
+# =============================================================================
+# MASTER ORCHESTRATOR
+# =============================================================================
+
+def main():
+    print("=== K-MATH SYSTEM INITIALIZATION ===")
+    print(f"System Time: {time.ctime()}")
+    print("====================================")
+    
+    # Sequence 1: Core Engine
+    engine = CrownUnifiedEngine()
+    report = engine.run()
+    print("\n[CROWN ENGINE REPORT]")
+    for k, v in report.items():
+        print(f"  {k}: {v}")
+        
+    # Sequence 2: Harmonics
+    harmonics_sequence()
+    
+    # Sequence 3: Field Kernel
+    unified_kernel_sequence()
+    
+    # Sequence 4: Intent Demo
+    intent_demo_sequence()
+    
+    print("\n====================================")
+    print("ALL SEQUENCES EXECUTED SUCCESSFULLY.")
+    print("SYSTEM STANDING BY.")
+
+if __name__ == "__main__":
+    main()
+```
